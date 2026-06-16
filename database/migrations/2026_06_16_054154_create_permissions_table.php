@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
+            $table->string('permission_code')->unique();
+            $table->string('name');
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
