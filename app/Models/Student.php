@@ -32,4 +32,17 @@ class Student extends Model
     {
         return $this->belongsTo(Department::class);
     }
+    
+    protected $appends = ['photo_url'];
+    
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo) {
+            return asset
+            ('storage/' . $this->photo);
+        }
+
+        return asset('images/default-avatar.png');
+    }
+
 }

@@ -66,7 +66,8 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Account activated successfully',
-            'user' => $user
+            'user' => $user,
+            'student' => $student
         ], 201);
     }
 
@@ -109,11 +110,19 @@ class AuthController extends Controller
         // create token (Sanctum)
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // $user->load('roles', 'permissions');
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user,
+            'user' => [
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'student' => $user->student
+        ]
         ]);
     }
 
@@ -122,10 +131,20 @@ class AuthController extends Controller
      */
     public function dashboard(Request $request)
     {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated user',
+                'user' => null
+            ], 401);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Welcome to University Track System',
-            'user' => $request->user()
+            'user' => $user->load('student')
         ]);
     }
 
@@ -135,8 +154,8 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         return response()->json([
-            'success' => true,
-            'user' => $request->user()
+        'success' => true,
+        'user' => $request->user()->load('student')
         ]);
     }
 

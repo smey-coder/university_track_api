@@ -47,4 +47,26 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class, 'user_id', 'id');
     }
+
+    // public function roles()
+    // {
+    //     return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+    // }
+
+    // public function permissions()
+    // {
+    //     // Return a collection of permissions gathered from the user's roles.
+    //     return $this->roles()
+    //         ->with('permissions')
+    //         ->get()
+    //         ->pluck('permissions')
+    //         ->flatten()
+    //         ->unique('id')
+    //         ->values();
+    // }
+
+    // public function hasRole($role)
+    // {
+    //     return $this->roles()->where('name', $role)->exists();
+    // }
 }

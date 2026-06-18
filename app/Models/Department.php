@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Student;
 
 class Department extends Model
 {
@@ -10,14 +12,15 @@ class Department extends Model
 
     protected $fillable = [
         'department_code',
-
         'department_name_khmer',
         'department_name_english',
-
-        'description_khmer',
-        'description_english',
-
+        'description',
         'status',
+    ];
+
+    // ✅ FORCE INTEGER TYPE FOR API
+    protected $casts = [
+        'id' => 'integer',
     ];
 
     /**
