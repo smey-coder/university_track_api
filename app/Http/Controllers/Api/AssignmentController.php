@@ -4,15 +4,24 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Assignment;
 
 class AssignmentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Student sees all OPEN assignments
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $assignments = Assignment::with(['course', 'teacher'])
+            ->where('status', 'Open')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $assignments
+        ]);
     }
 
     /**

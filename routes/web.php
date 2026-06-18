@@ -1,10 +1,13 @@
 <?php
-
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AssignmentSubmissionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/dashboard', [DashboardController::class, 'index'])->name('admin.index');
     Route::resource('students', StudentController::class);
     Route::resource('departments', DepartmentController::class);
+    Route::resource('courses', CourseController::class);
+    Route::resource('teachers', TeacherController::class);
+    Route::resource('assignments', AssignmentController::class);
+    Route::resource('assignment_submissions', AssignmentSubmissionController::class);
 });
 
 require __DIR__.'/auth.php';

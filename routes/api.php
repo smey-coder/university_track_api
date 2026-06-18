@@ -2,59 +2,81 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController; 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\AssignmentSubmissionApiController;
+use App\Http\Controllers\Api\AssignmentController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+/*
+|--------------------------------------------------------------------------
+| AUTH
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+
+/*
+|--------------------------------------------------------------------------
+| PROTECTED ROUTES (Flutter LOGIN REQUIRED)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    // User
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // Dashboard
+    Route::get('/dashboard', [AuthController::class, 'dashboard']);
+
+    // Logout
+    Route::post('/logout', function (Request $request) {
+        $request->user()->tokens()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out successfully'
+        ]);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEPARTMENTS
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/departments', [DepartmentController::class, 'index']);
+    Route::post('/departments', [DepartmentController::class, 'store']);
+    Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+    Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+    Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | STUDENTS
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/students', [StudentController::class, 'index']);
+    Route::get('/students/{id}', [StudentController::class, 'show']);
 
 
-Route::post('/register', [AuthController::class, 'register']); 
-Route::post('/login', [AuthController::class, 'login'])->name('api.login'); 
+    //Assignment
+    Route::get('/assignments', [AssignmentController::class, 'index']);
 
-Route::middleware('auth:sanctum')->group(function () { 
-Route::get('/dashboard', [AuthController::class, 'dashboard']); 
-Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
-    $request->user()->tokens()->delete(); // delete all tokens
-    return response()->json([
-        'success' => true,
-        'message' => 'Logged out successfully'
-    ]);
+    /*
+    |--------------------------------------------------------------------------
+    | ASSIGNMENT SUBMISSIONS (NEW 🚀)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/submissions', [AssignmentSubmissionApiController::class, 'index']);
+    Route::post('/submissions', [AssignmentSubmissionApiController::class, 'store']);
+    Route::get('/submissions/{id}', [AssignmentSubmissionApiController::class, 'show']);
 });
-}); 
 
-//Department
-Route::get('/departments', [DepartmentController::class, 'index']);
-Route::post('/departments', [DepartmentController::class, 'store']);
-Route::get('/departments/{id}', [DepartmentController::class, 'show']);
-Route::put('/departments/{id}', [DepartmentController::class, 'update']);
-Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
-
-//Student
-Route::get('/students', [StudentController::class, 'index']);
-// Route::post('/students', [StudentController::class, 'store']);
-Route::get('/students/{id}', [StudentController::class, 'show']);
-// Route::put('/students/{id}', [StudentController::class, 'update']);
-// Route::delete('/students/{id}', [StudentController::class, 'destroy']);
-
-
-// Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-//     Route::get('/admin/dashboard', function () {
-//         return "Admin Dashboard";
-//     });
-
-//     Route::post('/departments', [DepartmentController::class, 'store']);
-// });
-// Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
-//     // Dashboard
-//     Route::get('/dashboard', [AuthController::class, 'dashboard'], function () {
-//         return response()->json([
-//             'message' => 'Student Dashboard'
-//         ]);
-//     });
-//     Route::get('/my-profile', function () {
-//         return auth()->user();
-//     });
-// });
+//For test
+//-----------------------------------------------------------------
+// Route::get('/assignments', [AssignmentController::class, 'index']);

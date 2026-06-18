@@ -45,4 +45,8 @@ class Student extends Model
         return asset('images/default-avatar.png');
     }
 
+    public function submissions()
+    {
+        return $this->hasMany(AssignmentSubmission::class);
+    }
 }

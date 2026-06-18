@@ -15,7 +15,6 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
@@ -83,11 +82,50 @@
     <a href="{{ route('students.index') }}">
         <i class="bi bi-people"></i> Students
     </a>
+    <a href="{{ route('teachers.index') }}">
+        <i class="bi bi-person-badge"></i> Teachers
+    </a>
 
     <a href="{{ route('departments.index') }}">
         <i class="bi bi-journal"></i> Departments
     </a>
 
+    <div class="dropdown">
+
+        <a class="nav-link dropdown-toggle" href="{{ route('courses.index') }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-book"></i> Courses
+        </a>
+
+        <ul class="dropdown-menu">
+
+            <li>
+                <a class="dropdown-item" href="{{ url('/courses') }}">
+                    All Courses
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item" href="{{ url('/student-courses') }}">
+                    Student Courses
+                </a>
+            </li>
+
+        </ul>
+
+    </div>
+    <a href="#">
+        <i class="bi bi-check2-square"></i> Attendances
+    </a>
+    <div class="dropdown">
+        <a class="text-white d-block py-2" data-bs-toggle="dropdown">
+            <i class="bi bi-journal-text"></i> Assignments ▾
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('assignments.index') }}">Assignments</a></li>
+            <li><a class="dropdown-item" href="{{ route('assignment_submissions.index') }}">Submissions</a></li>
+        </ul>
+
+    </div>
     <a href="#">
         <i class="bi bi-calendar"></i> Timetable
     </a>

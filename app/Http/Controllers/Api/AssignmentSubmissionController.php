@@ -4,46 +4,79 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\AssignmentSubmission;
+use Illuminate\Support\Facades\Storage;
 
 class AssignmentSubmissionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * GET ALL SUBMISSIONS
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $user = $request->user();
+
+        $query = AssignmentSubmission::with(['assignment', 'student']);
+
+        // If student → show only own submissions
+        if ($user->role === 'student') {
+            $query->where('student_id', $user->id);
+        }
+
+        $data = $query->latest()->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * SHOW SINGLE
+     */
+    public function show($id)
+    {
+        $submission = AssignmentSubmission::with(['assignment', 'student'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $submission
+        ]);
+    }
+
+    /**
+     * STUDENT SUBMIT ASSIGNMENT
      */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'assignment_id' => 'required|exists:assignments,id',
+            'file' => 'required|file|max:10240', // 10MB
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $user = $request->user();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        // Upload file
+        $filePath = null;
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('submissions', 'public');
+        }
+
+        $submission = AssignmentSubmission::create([
+            'submission_code' => 'SUB-' . time(),
+            'assignment_id'   => $request->assignment_id,
+            'student_id'      => $user->id,
+            'file_path'       => $filePath,
+            'submitted_at'    => now(),
+            'status'          => 'Submitted',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assignment submitted successfully',
+            'data' => $submission
+        ]);
     }
 }
