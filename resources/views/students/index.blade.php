@@ -54,6 +54,7 @@
                             <th>English Name</th>
                             <th>Gender</th>
                             <th>Department</th>
+                            <th>Class</th>
                             <th>Phone</th>
                             <th>Status</th>
                             <th width="220">Actions</th>
@@ -105,6 +106,10 @@
 
                             <td>
                                 {{ $student->department->department_name_english ?? '-' }}
+                            </td>
+
+                            <td>
+                                {{ $student->classes->class_name ?? '-' }}
                             </td>
 
                             <td>{{ $student->phone }}</td>

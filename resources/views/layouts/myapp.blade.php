@@ -126,6 +126,16 @@
         </ul>
 
     </div>
+    <div class="dropdown">
+        <a class="text-white d-block py-2" data-bs-toggle="dropdown">
+            <i class="bi bi-journal-text"></i> Management ▾
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('class-managers.index') }}">Class Manager</a></li>
+            <li><a class="dropdown-item" href="{{ route('subject-schedules.index') }}">Subject Schedules</a></li>
+        </ul>
+
+    </div>
     <a href="#">
         <i class="bi bi-calendar"></i> Timetable
     </a>

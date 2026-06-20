@@ -43,6 +43,18 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Class</label>
+                    <select name="class_id" class="form-control" required>
+                        <option value="">-- Select Class --</option>
+                        @foreach($class as $cl)
+                            <option value="{{ $cl->id }}">
+                                {{ $student->class_id == $cl->id ? 'selected' : '' }}>
+                                {{ $cl->class_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <!-- Names -->
                 <div class="mb-3">

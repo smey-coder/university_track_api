@@ -27,6 +27,8 @@ class Teacher extends Model
         'status',
     ];
 
+    protected $appends = ['full_name_english', 'full_name_khmer', 'photo_url']; // ✅ ADD THIS
+
     // ================= RELATION: User =================
     public function user()
     {
@@ -57,5 +59,10 @@ class Teacher extends Model
         return $this->photo
             ? asset('storage/' . $this->photo)
             : asset('images/default-user.png');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(SubjectSchedule::class);
     }
 }

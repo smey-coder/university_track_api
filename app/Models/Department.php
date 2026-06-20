@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Student;
 use App\Models\Course;
-
+use App\Models\StudentClass;
 class Department extends Model
 {
     use HasFactory;
@@ -34,5 +34,10 @@ class Department extends Model
     public function courses()
     {
         return $this->hasMany(Course::class);
+    }
+
+     public function classes()
+    {
+        return $this->hasMany(StudentClass::class);
     }
 }

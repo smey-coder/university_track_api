@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\StudentController;
-use App\Http\Controllers\Api\AssignmentSubmissionApiController;
+use App\Http\Controllers\Api\AssignmentSubmissionController;
 use App\Http\Controllers\Api\AssignmentController;
-
+use App\Http\Controllers\Api\SubjectScheduleController;
+use App\Http\Controllers\Api\TodayScheduleController;
+use App\Http\Controllers\Api\ClassRoomController;
 /*
 |--------------------------------------------------------------------------
 | AUTH
@@ -48,11 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
     | DEPARTMENTS
     |--------------------------------------------------------------------------
     */
-    Route::get('/departments', [DepartmentController::class, 'index']);
-    Route::post('/departments', [DepartmentController::class, 'store']);
-    Route::get('/departments/{id}', [DepartmentController::class, 'show']);
-    Route::put('/departments/{id}', [DepartmentController::class, 'update']);
-    Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
 
     /*
     |--------------------------------------------------------------------------
@@ -72,11 +69,39 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/submissions', [AssignmentSubmissionApiController::class, 'index']);
-    Route::post('/submissions', [AssignmentSubmissionApiController::class, 'store']);
-    Route::get('/submissions/{id}', [AssignmentSubmissionApiController::class, 'show']);
+     Route::get('/assignment-submissions', 
+        [AssignmentSubmissionController::class, 'index']
+    );
+
+    // 📄 Get single submission
+    Route::get('/assignment-submissions/{id}', 
+        [AssignmentSubmissionController::class, 'show']
+    );
+
+    // 📤 Submit assignment (student only)
+    Route::post('/assignment-submissions', 
+        [AssignmentSubmissionController::class, 'store']
+    );
+
+    Route::get('/subject-schedules',
+        [SubjectScheduleController::class, 'index']
+    );
+
+    Route::get('/today-schedules',[TodayScheduleController::class, 'index']);
+
+    Route::get('/class-room',[ClassRoomController::class, 'index']);
 });
 
 //For test
 //-----------------------------------------------------------------
 // Route::get('/assignments', [AssignmentController::class, 'index']);
+
+//  Route::get('/subject-schedules',
+//         [SubjectScheduleController::class, 'index']
+//     );
+
+Route::get('/departments', [DepartmentController::class, 'index']);
+Route::post('/departments', [DepartmentController::class, 'store']);
+Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AssignmentSubmission;
+use App\Models\Student;
 use Illuminate\Support\Facades\Storage;
 
 class AssignmentSubmissionController extends Controller
@@ -17,22 +18,16 @@ class AssignmentSubmissionController extends Controller
         $user = $request->user();
 
         $query = AssignmentSubmission::with(['assignment', 'student']);
-
-        // If student → show only own submissions
-        if ($user->role === 'student') {
-            $query->where('student_id', $user->id);
-        }
-
-        $data = $query->latest()->get();
+        $query->where('student_id', $user->username);
 
         return response()->json([
             'success' => true,
-            'data' => $data
+            'data' => $query->latest()->get()
         ]);
     }
 
     /**
-     * SHOW SINGLE
+     * SHOW SINGLE SUBMISSION
      */
     public function show($id)
     {
@@ -50,33 +45,55 @@ class AssignmentSubmissionController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'assignment_id' => 'required|exists:assignments,id',
-            'file' => 'required|file|max:10240', // 10MB
-        ]);
-
         $user = $request->user();
 
-        // Upload file
-        $filePath = null;
+    $student = Student::where(
+        'user_id',
+        $user->id
+    )->first();
 
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('submissions', 'public');
-        }
-
-        $submission = AssignmentSubmission::create([
-            'submission_code' => 'SUB-' . time(),
-            'assignment_id'   => $request->assignment_id,
-            'student_id'      => $user->id,
-            'file_path'       => $filePath,
-            'submitted_at'    => now(),
-            'status'          => 'Submitted',
-        ]);
-
+    if (!$student) {
         return response()->json([
-            'success' => true,
-            'message' => 'Assignment submitted successfully',
-            'data' => $submission
-        ]);
+            'success' => false,
+            'message' => 'Student not found'
+        ], 404);
+    }
+
+    $request->validate([
+        'assignment_id' => 'required|exists:assignments,id',
+        'file' => 'required|file|max:10240',
+    ]);
+
+    $exists = AssignmentSubmission::where(
+            'assignment_id',
+            $request->assignment_id
+        )
+        ->where('student_id', $student->id)
+        ->first();
+
+    if ($exists) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Already submitted'
+        ], 422);
+    }
+
+    $filePath = $request->file('file')
+        ->store('submissions', 'public');
+
+    $submission = AssignmentSubmission::create([
+        'submission_code' => 'SUB-' . time(),
+        'assignment_id' => $request->assignment_id,
+        'student_id' => $student->id,
+        'file_path' => $filePath,
+        'submitted_at' => now(),
+        'status' => 'Submitted',
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Submitted successfully',
+        'data' => $submission
+    ]);
     }
 }

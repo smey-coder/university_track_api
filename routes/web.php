@@ -8,6 +8,8 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignmentSubmissionController;
+use App\Http\Controllers\ClassManagerController;
+use App\Http\Controllers\SubjectScheduleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('students', StudentController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('courses', CourseController::class);
+    Route::resource('class-managers', ClassManagerController::class);
+    Route::resource('subject-schedules', SubjectScheduleController::class);
     Route::resource('teachers', TeacherController::class);
     Route::resource('assignments', AssignmentController::class);
     Route::resource('assignment_submissions', AssignmentSubmissionController::class);

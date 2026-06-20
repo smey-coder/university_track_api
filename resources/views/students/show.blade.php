@@ -63,6 +63,11 @@
                         </tr>
 
                         <tr>
+                            <th>Class</th>
+                            <td>{{ $students->classes->class_name ?? '-' }}</td>
+                        </tr>
+
+                        <tr>
                             <th>Date Of Birth</th>
                             <td>{{ $students->date_of_birth }}</td>
                         </tr>

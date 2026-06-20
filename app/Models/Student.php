@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\StudentClass;
 
 class Student extends Model
 {
@@ -10,6 +11,8 @@ class Student extends Model
     protected $fillable = [
         'student_code',
         'department_id',
+        'class_id',
+        'semester_id',
         'first_name_khmer',
         'last_name_khmer',
         'first_name_english',
@@ -48,5 +51,20 @@ class Student extends Model
     public function submissions()
     {
         return $this->hasMany(AssignmentSubmission::class);
+    }
+     public function classManagerRecord()
+    {
+        return $this->hasOne(ClassManager::class);
+    }
+     public function classes()
+    {
+        return $this->belongsTo(StudentClass::class, 'class_id');
+    }
+    public function semester()
+    {
+        return $this->belongsTo(
+            Semester::class,
+            'semester_id'
+        );
     }
 }

@@ -32,4 +32,9 @@ class Course extends Model
     {
         return $this->belongsTo(Teacher::class);
     }
+
+    public function schedules()
+    {
+        return $this->hasMany(SubjectSchedule::class);
+    }
 }

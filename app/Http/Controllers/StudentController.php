@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Department;
+use App\Models\StudentClass;
 
 class StudentController extends Controller
 {
@@ -13,7 +14,7 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::with('department')
+        $students = Student::with('department', 'classes')
             ->orderBy('id', 'desc')
             ->paginate(10);
 
@@ -25,10 +26,9 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $departments = Department::orderBy('department_name_english')
-            ->get();
-
-        return view('students.create', compact('departments'));
+        $departments = Department::orderBy('department_name_english')->get();
+        $class = StudentClass::orderBy('class_name')->get();
+        return view('students.create', compact('departments', 'class'));
     }
 
     /**
@@ -39,6 +39,7 @@ class StudentController extends Controller
         $request->validate([
             'student_code' => 'required|unique:students,student_code',
             'department_id' => 'required|exists:departments,id',
+            'class_id' => 'required|exists:classes,id',
             'first_name_khmer' => 'required',
             'last_name_khmer' => 'required',
             'first_name_english' => 'required',
@@ -62,6 +63,7 @@ class StudentController extends Controller
         Student::create([
             'student_code' => $request->student_code,
             'department_id' => $request->department_id,
+            'class_id' => $request->class_id,
             'first_name_khmer' => $request->first_name_khmer,
             'last_name_khmer' => $request->last_name_khmer,
             'first_name_english' => $request->first_name_english,
@@ -91,10 +93,10 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        $departments = Department::orderBy('department_name_english')
-            ->get();
+        $departments = Department::orderBy('department_name_english')->get();
+        $class = StudentClass::orderBy('class_name')->get();
 
-        return view('students.edit', compact('student', 'departments'));
+        return view('students.edit', compact('student', 'departments', 'class'));
     }
 
     /**
@@ -105,7 +107,7 @@ class StudentController extends Controller
         $request->validate([
             'student_code' => 'required|unique:students,student_code,' . $student->id,
             'department_id' => 'required|exists:departments,id',
-
+            'class_id' => 'required|exists:classes,id',
             'first_name_khmer' => 'required',
             'last_name_khmer' => 'required',
 
@@ -138,7 +140,7 @@ class StudentController extends Controller
 
         $student->student_code = $request->student_code;
         $student->department_id = $request->department_id;
-
+        $student->class_id = $request->class_id;
         $student->first_name_khmer = $request->first_name_khmer;
         $student->last_name_khmer = $request->last_name_khmer;
 
