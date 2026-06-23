@@ -15,6 +15,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/html5-qrcode"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
@@ -113,9 +114,16 @@
         </ul>
 
     </div>
-    <a href="#">
-        <i class="bi bi-check2-square"></i> Attendances
-    </a>
+    <div class="dropdown">
+        <a class="text-white d-block py-2" data-bs-toggle="dropdown">
+            <i class="bi bi-journal-text"></i> Attendances ▾
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('attendance_sessions.index') }}">Attendance Sessions</a></li>
+            <li><a class="dropdown-item" href="{{ route('attendance_records.index') }}">Attendance Records</a></li>
+        </ul>
+
+    </div>
     <div class="dropdown">
         <a class="text-white d-block py-2" data-bs-toggle="dropdown">
             <i class="bi bi-journal-text"></i> Assignments ▾
@@ -220,7 +228,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
     // DELETE CONFIRM
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', function (e) {

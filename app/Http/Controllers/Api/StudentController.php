@@ -10,7 +10,7 @@ class StudentController extends Controller
     // GET ALL STUDENTS
     public function index()
     {
-        $students = Student::with('department')->get();
+        $students = Student::with('department','classes','semester')->get();
 
         return response()->json([
             'success' => true,
@@ -21,7 +21,7 @@ class StudentController extends Controller
     // GET SINGLE STUDENT
     public function show($id)
     {
-        $student = Student::with('department')->find($id);
+        $student = Student::with('department','classes','semester')->find($id);
 
         if (!$student) {
             return response()->json([

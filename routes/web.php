@@ -10,6 +10,8 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignmentSubmissionController;
 use App\Http\Controllers\ClassManagerController;
 use App\Http\Controllers\SubjectScheduleController;
+use App\Http\Controllers\AttendanceSessionController;
+use App\Http\Controllers\AttendanceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -32,6 +34,36 @@ Route::middleware('auth')->group(function () {
     Route::resource('teachers', TeacherController::class);
     Route::resource('assignments', AssignmentController::class);
     Route::resource('assignment_submissions', AssignmentSubmissionController::class);
+    Route::resource('attendance_sessions', AttendanceSessionController::class);
+    // custom routes
+    Route::post('attendance_sessions/{id}/close', [AttendanceSessionController::class, 'close'])
+        ->name('attendance_sessions.close');
+
+    Route::post('attendance_sessions/{id}/regenerate', [AttendanceSessionController::class, 'regenerateCode'])
+        ->name('attendance_sessions.regenerate');
+
+    /// =============================
+    // Attendance CRUD
+    // =============================
+    Route::resource('attendance_records', AttendanceController::class);
+
+    // =============================
+    // 🔢 MANUAL CODE SCAN
+    // =============================
+    Route::get('/attendance/scan', [AttendanceController::class, 'scanForm'])
+        ->name('attendances.scan');
+
+    Route::post('/attendance/scan', [AttendanceController::class, 'processScan'])
+        ->name('attendances.scan.process');
+
+    // =============================
+    // 📱 QR SCAN PAGE (NEW UI PAGE)
+    // =============================
+    Route::get('/attendance/scan-qr', [AttendanceController::class, 'scanQRPage'])
+        ->name('attendances.scan.qr.page');
+
+    Route::post('/attendance/scan-qr', [AttendanceController::class, 'processQRScan'])
+        ->name('attendances.scan.qr.process');
 });
 
 require __DIR__.'/auth.php';

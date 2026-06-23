@@ -139,13 +139,9 @@
                                     <span class="badge bg-danger">
                                         Suspended
                                     </span>
-
                                 @endif
-
                             </td>
-
                             <td class="text-center">
-
                                 <a href="{{ route('students.show',$student->id) }}"
                                    class="btn btn-info btn-sm">
                                     View
@@ -155,11 +151,9 @@
                                    class="btn btn-warning btn-sm">
                                     Edit
                                 </a>
-
                                 <form action="{{ route('students.destroy',$student->id) }}"
                                       method="POST"
                                       class="d-inline">
-
                                     @csrf
                                     @method('DELETE')
 
@@ -167,11 +161,8 @@
                                             class="btn btn-danger btn-sm delete-btn">
                                         Delete
                                     </button>
-
                                 </form>
-
                             </td>
-
                         </tr>
 
                     @empty
@@ -199,17 +190,11 @@
         </div>
 
     </div>
-
 </div>
-
 <script>
-
 document.querySelectorAll('.delete-btn').forEach(button => {
-
     button.addEventListener('click', function(e){
-
         e.preventDefault();
-
         let form = this.closest('form');
 
         Swal.fire({

@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\AssignmentController;
 use App\Http\Controllers\Api\SubjectScheduleController;
 use App\Http\Controllers\Api\TodayScheduleController;
 use App\Http\Controllers\Api\ClassRoomController;
+use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\AttendanceRecordController;
 /*
 |--------------------------------------------------------------------------
 | AUTH
@@ -86,10 +88,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/subject-schedules',
         [SubjectScheduleController::class, 'index']
     );
-
     Route::get('/today-schedules',[TodayScheduleController::class, 'index']);
-
     Route::get('/class-room',[ClassRoomController::class, 'index']);
+    Route::get('/profile',[SettingController::class, 'profile']);
+    Route::put('/profile/update',[SettingController::class, 'updateProfile']);
+    Route::post('/change-password',[SettingController::class, 'changePassword']);
+    Route::post('/logout',[SettingController::class, 'logout']);
+
+    //Attendance Recorde
+    Route::get('/attendance', [AttendanceRecordController::class, 'index']);
+    Route::post('/attendance/create', [AttendanceRecordController::class, 'scan']);
+    Route::get('/attendance/summary',[AttendanceRecordController::class, 'summary']);
+    Route::get('/attendance/subjects',[AttendanceRecordController::class, 'subjectAttendance']);
+
 });
 
 //For test
