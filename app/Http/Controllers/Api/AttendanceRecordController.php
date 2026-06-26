@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 class AttendanceRecordController extends Controller
 {
-    // 📊 1. VIEW ATTENDANCE BY SUBJECT
+    // 1. VIEW ATTENDANCE BY SUBJECT
     public function index()
     {
         $student = Student::where('user_id', Auth::id())->first();
@@ -37,7 +37,7 @@ class AttendanceRecordController extends Controller
         ]);
     }
 
-    // 📷 2. SCAN ATTENDANCE (QR OR CODE INPUT)
+    //2. SCAN ATTENDANCE (QR OR CODE INPUT)
     public function scan(Request $request)
     {
         $request->validate([
@@ -94,13 +94,8 @@ class AttendanceRecordController extends Controller
     }
     public function summary()
     {
-        $student = Student::where(
-            'user_id',
-            Auth::id()
-        )->first();
-
-        return response()->json([
-            'present' => Attendance::where(
+        $student = Student::where('user_id',Auth::id())->first();
+        return response()->json(['present' => Attendance::where(
                 'student_id',
                 $student->id
             )->where('status','Present')->count(),
@@ -138,5 +133,31 @@ class AttendanceRecordController extends Controller
      private function generateAttendanceCode()
     {
         return 'ATD-' . Str::upper(Str::uuid());
+    }
+    public function courseSummary()
+    {
+        $student = Student::where('user_id', Auth::id())->first();
+
+        $courses = Attendance::with('session.course')
+            ->where('student_id', $student->id)
+            ->get()
+            ->groupBy('session.course.course_name');
+
+        $result = [];
+
+        foreach ($courses as $course => $records) {
+
+            $result[] = [
+                'course' => $course,
+                'present' => $records->where('status', 'Present')->count(),
+                'late' => $records->where('status', 'Late')->count(),
+                'absent' => $records->where('status', 'Absent')->count(),
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+        ]);
     }
 }

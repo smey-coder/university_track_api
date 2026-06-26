@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - University Track</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo_app.png') }}">
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,51 +20,67 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        body {
-            background: #f4f6f9;
-        }
+    body {
+        margin: 0;
+        background: #f4f6f9;
+        overflow-x: hidden;
+    }
 
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            position: fixed;
-            background: #111827;
-            color: white;
-            padding: 20px;
-        }
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background: #111827;
+        color: #fff;
+        padding: 20px;
+        overflow-y: auto;
+    }
 
-        .sidebar a {
-            color: #cbd5e1;
-            text-decoration: none;
-            display: block;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 5px;
-        }
+    .sidebar a {
+        color: #cbd5e1;
+        text-decoration: none;
+        display: block;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        transition: .3s;
+    }
 
-        .sidebar a:hover {
-            background: #1f2937;
-            color: white;
-        }
+    .sidebar a:hover {
+        background: #1f2937;
+        color: #fff;
+    }
 
-        .main {
-            margin-left: 250px;
-        }
+    /* Main Wrapper */
+    .main {
+        margin-left: 250px;
+        min-height: 100vh;
+    }
 
-        /* Topbar */
-        .topbar {
-            background: white;
-            padding: 12px 20px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* Top Navbar */
+    .topbar {
+        position: fixed;
+        top: 0;
+        left: 250px;
+        right: 0;
+        height: 70px;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 25px;
+        z-index: 999;
+    }
 
-        .content {
-            padding: 20px;
-        }
+    /* Page Content */
+    .content {
+        margin-top: 70px; /* Same as navbar height */
+        padding: 20px;
+    }
     </style>
 </head>
 
@@ -158,22 +175,16 @@
 
 <!-- MAIN -->
 <div class="main">
-
     <!-- TOP BAR -->
     <div class="topbar">
-
         <h5 class="mb-0">@yield('title')</h5>
-
         <div class="d-flex align-items-center gap-3">
-
             <!-- Search -->
             <input type="text" class="form-control form-control-sm" placeholder="Search...">
-
             <!-- Role Badge -->
             <span class="badge bg-primary">
                 Admin
             </span>
-
             <!-- Profile -->
             <div class="dropdown">
 

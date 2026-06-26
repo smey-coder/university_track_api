@@ -22,9 +22,7 @@
 
         <i class="bi bi-qr-code-scan"></i>
         QR Scan
-
     </a>
-
     <!--  MANUAL CODE SCAN -->
     <a href="{{ route('attendances.scan') }}"
        class="btn btn-primary shadow-sm">
@@ -35,9 +33,7 @@
     </a>
 
 </div>
-
     </div>
-
     <!-- QUICK INFO CARD -->
     <div class="row mb-4">
 
@@ -74,7 +70,6 @@
         </div>
 
         <div class="col-md-4">
-
             <div class="card border-0 shadow-sm bg-danger text-white">
 
                 <div class="card-body">
@@ -90,15 +85,67 @@
 
         </div>
     </div>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="GET">
+                <div class="row">
+                    <div class="col-md-8">
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Search Student, Course, Class, Attendance Code..."
+                            value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select
+                            name="status"
+                            class="form-select">
+                            <option value="">All Status</option>
+
+                            <option value="Present"
+                                {{ request('status')=='Present'?'selected':'' }}>
+                                Present
+                            </option>
+
+                            <option value="Late"
+                                {{ request('status')=='Late'?'selected':'' }}>
+                                Late
+                            </option>
+
+                            <option value="Absent"
+                                {{ request('status')=='Absent'?'selected':'' }}>
+                                Absent
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button class="btn btn-primary">
+
+                            <i class="bi bi-search"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
     <!-- TABLE CARD -->
     <div class="card shadow border-0">
-
         <div class="card-body p-0">
-
             <div class="table-responsive">
-
                 <table class="table table-hover align-middle mb-0">
-
                     <thead class="table-dark">
                         <tr>
                             <th>#</th>

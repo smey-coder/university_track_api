@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ASSIGNMENT SUBMISSIONS (NEW 🚀)
+    | ASSIGNMENT SUBMISSIONS (NEW)
     |--------------------------------------------------------------------------
     */
 
@@ -75,12 +75,12 @@ Route::middleware('auth:sanctum')->group(function () {
         [AssignmentSubmissionController::class, 'index']
     );
 
-    // 📄 Get single submission
+    //Get single submission
     Route::get('/assignment-submissions/{id}', 
         [AssignmentSubmissionController::class, 'show']
     );
 
-    // 📤 Submit assignment (student only)
+    // Submit assignment (student only)
     Route::post('/assignment-submissions', 
         [AssignmentSubmissionController::class, 'store']
     );
@@ -100,6 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/attendance/create', [AttendanceRecordController::class, 'scan']);
     Route::get('/attendance/summary',[AttendanceRecordController::class, 'summary']);
     Route::get('/attendance/subjects',[AttendanceRecordController::class, 'subjectAttendance']);
+    Route::get('/attendance/courseSummary',[AttendanceRecordController::class, 'courseSummary']);
 
 });
 

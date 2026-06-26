@@ -129,12 +129,10 @@
             </div>
 
             <div class="col-md-6">
-
                 <input type="text"
                        id="search"
                        class="form-control"
                        placeholder="Search session...">
-
             </div>
 
         </div>
@@ -265,7 +263,6 @@
 </div>
 </div>
 <script>
-
 document.getElementById('search')
 .addEventListener('keyup', function(){
 

@@ -1,6 +1,6 @@
 @extends('layouts.myapp')
 
-@section('title', 'Create Assignment')
+@section('title','Create Teacher')
 
 @section('content')
 
@@ -8,93 +8,136 @@
 
     <div class="row justify-content-center">
 
-        <div class="col-lg-8">
+        <div class="col-lg-10">
 
-            <div class="card shadow border-0">
+            <div class="card shadow-lg border-0">
 
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-warning text-dark">
                     <h4 class="mb-0">
-                        <i class="bi bi-journal-plus"></i>
-                        Create Assignment
+                        <i class="bi bi-pencil-square"></i>
+                        Create Teacher
                     </h4>
                 </div>
 
                 <div class="card-body">
 
-                    <form method="POST" action="{{ route('assignments.store') }}">
+                    <x-message />
+
+                    <form action="{{ route('teachers.store') }}" method="POST" enctype="multipart/form-data">
+
                         @csrf
 
-                        <div class="mb-3">
-                            <label>Assignment Code</label>
-                            <input name="assignment_code" class="form-control" placeholder="ASG-001">
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Title</label>
-                            <input name="title" class="form-control" placeholder="Assignment Title">
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Description</label>
-                            <textarea name="description" class="form-control" rows="3"></textarea>
-                        </div>
-
                         <div class="row">
 
-                            <div class="col-md-6 mb-3">
-                                <label>Course</label>
-                                <select name="course_id" class="form-control">
-                                    @foreach($courses as $c)
-                                        <option value="{{ $c->id }}">
-                                            {{ $c->course_name }}
+                            <div class="col-md-6">
+
+                                <label class="form-label">Teacher Code</label>
+                                <input type="text"
+                                       name="teacher_code"
+                                       placeholder="Enter teacher code"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Department</label>
+                                <select name="department_id"
+                                        class="form-control mb-3"
+                                        required>
+                                    <option value="">-- Select Department --</option>
+                                    @foreach($departments as $d)
+                                        <option value="{{ $d->id }}">
+                                            {{ $d->department_name_english }}
                                         </option>
                                     @endforeach
+
                                 </select>
-                            </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label>Teacher</label>
-                                <select name="teacher_id" class="form-control">
-                                    @foreach($teachers as $t)
-                                        <option value="{{ $t->id }}">
-                                            {{ $t->first_name_english }} {{ $t->last_name_english }}
-                                        </option>
-                                    @endforeach
+                                <label class="form-label">First Name (Khmer)</label>
+                                <input type="text"
+                                       name="first_name_khmer"
+                                       placeholder="First name in Khmer"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Last Name (Khmer)</label>
+                                <input type="text"
+                                       name="last_name_khmer"
+                                       placeholder="Last name in Khmer"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Gender</label>
+                                <select name="gender" class="form-control mb-3" required>
+                                    <option value="">-- Select Gender --</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
                                 </select>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">First Name (English)</label>
+                                <input type="text"
+                                       name="first_name_english"
+                                       placeholder="First name in English"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Last Name (English)</label>
+                                <input type="text"
+                                       name="last_name_english"
+                                       placeholder="Last name in English"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Phone</label>
+                                <input type="text"
+                                       name="phone"
+                                       placeholder="Phone number"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Email</label>
+                                <input type="email"
+                                       name="email"
+                                       placeholder="Email address"
+                                       class="form-control mb-3"
+                                       required>
+
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-control mb-3" required>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <label class="form-label">Address</label>
+                                <textarea name="address"
+                                          placeholder="Enter address"
+                                          class="form-control mb-3"></textarea>
+
+                                <label class="form-label">Photo</label>
+                                <input type="file"
+                                       name="photo"
+                                       class="form-control mb-3"
+                                       accept="image/*">
+
                             </div>
 
                         </div>
 
-                        <div class="row">
+                        <div class="d-flex justify-content-between mt-4">
 
-                            <div class="col-md-6 mb-3">
-                                <label>Due Date</label>
-                                <input type="datetime-local" name="due_date" class="form-control">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label>Total Score</label>
-                                <input type="number" name="total_score" value="100" class="form-control">
-                            </div>
-
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Status</label>
-                            <select name="status" class="form-control">
-                                <option>Open</option>
-                                <option>Closed</option>
-                            </select>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-
-                            <a href="{{ route('assignments.index') }}" class="btn btn-secondary">
-                                Cancel
+                            <a href="{{ route('teachers.index') }}"
+                               class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
                             </a>
 
-                            <button class="btn btn-success">
-                                Save Assignment
+                            <button class="btn btn-success" type="submit">
+                                <i class="bi bi-save"></i> Create Teacher
                             </button>
 
                         </div>

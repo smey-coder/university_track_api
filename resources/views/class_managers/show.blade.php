@@ -31,20 +31,20 @@
                 <!-- Class -->
                 <div class="col-md-6">
                     <h6>Class</h6>
-                    <p>{{ $classManager->schoolClass->class_name ?? '-' }}</p>
+                    <p>{{ $classManager->StudentClass->class_name ?? '-' }}</p>
                 </div>
 
                 <!-- Date -->
                 <div class="col-md-6">
                     <h6>Assigned Date</h6>
-                    <p>{{ $classManager->assigned_date }}</p>
+                    <p>{{ $classManager->created_at }}</p>
                 </div>
 
                 <!-- Status -->
                 <div class="col-md-6">
                     <h6>Status</h6>
                     <p>
-                        @if($classManager->status == 'Active')
+                        @if($classManager->StudentClass->status == 1)
                             <span class="badge bg-success">Active</span>
                         @else
                             <span class="badge bg-danger">Inactive</span>

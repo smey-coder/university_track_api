@@ -1,11 +1,7 @@
 @extends('layouts.myapp')
-
 @section('title', 'Assign Student')
-
 @section('content')
-
 <div class="container-fluid">
-
     <div class="card shadow border-0">
 
         <div class="card-header bg-primary text-white">
@@ -14,12 +10,10 @@
                 Assign Student to Class
             </h5>
         </div>
-
         <div class="card-body">
-
+            <x-message />
             <form action="{{ route('class-managers.store') }}" method="POST">
                 @csrf
-
                 <!-- STUDENT -->
                 <div class="mb-3">
                     <label class="form-label">Student</label>

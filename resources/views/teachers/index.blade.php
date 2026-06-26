@@ -191,12 +191,11 @@
                                     class="rounded-circle border shadow"
                                     width="60"
                                     height="60"
-                                    style="object-fit:cover">
-
+                                    style="object-fit:cover" alt="No Image">
                             @else
 
                                 <img
-                                    src="{{ asset('images/default-user.png') }}"
+                                    src="{{ asset('images/profile-picture.png') }}"
                                     class="rounded-circle border shadow"
                                     width="60"
                                     height="60">

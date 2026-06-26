@@ -6,16 +6,26 @@ use App\Models\ClassManager;
 use App\Models\Student;
 use App\Models\StudentClass;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ClassManagerController extends Controller
 {
     public function index()
     {
-        $classManagers = ClassManager::with(['student','StudentClass'])
+        try{
+            $classManagers = ClassManager::with(['student','StudentClass'])
             ->latest()
             ->paginate(10);
 
-        return view('class_managers.index', compact('classManagers'));
+
+            return view('class_managers.index', compact('classManagers'));
+        }catch(\Exception $e){
+
+            return back()->with(
+                'error',
+                'Class manager not found or failed to load. ' . $e->getMessage()
+            );
+        }
     }
 
     public function create()
@@ -28,18 +38,40 @@ class ClassManagerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'student_id'=>'required|exists:students,id',
-            'class_id'=>'required|exists:classes,id',
-            'created_at'=>'required|date',
-            // 'status'=>'required'
+        try{
+            $request->validate([
+            'student_id' => 'required|exists:students,id|unique:class_managers,student_id',
+            'class_id'   => 'required|exists:classes,id',
+            'created_at' => 'required|date',
         ]);
 
-        ClassManager::create($request->all());
+        DB::transaction(function () use ($request) {
+
+            // Save class assignment history
+            ClassManager::create([
+                'student_id' => $request->student_id,
+                'class_id'   => $request->class_id,
+                'created_at' => $request->created_at,
+            ]);
+
+            // Update student's current class
+            Student::where('id', $request->student_id)
+                ->update([
+                    'class_id' => $request->class_id,
+                ]);
+
+        });
 
         return redirect()
             ->route('class-managers.index')
-            ->with('success','Student assigned successfully.');
+            ->with('success', 'Student assigned to class successfully.');
+        }catch(\Exception $e){
+
+            return back()->with(
+                'error',
+                'Class manager not found or failed to create. ' . $e->getMessage()
+            );
+        }
     }
 
     public function show(ClassManager $classManager)
@@ -60,18 +92,30 @@ class ClassManagerController extends Controller
 
     public function update(Request $request, ClassManager $classManager)
     {
-        $request->validate([
-            'student_id'=>'required|exists:students,id',
-            'class_id'=>'required|exists:classes,id',
-            'created_at'=>'required|date',
-            // 'status'=>'required'
+            $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'class_id'   => 'required|exists:classes,id',
+            'created_at' => 'required|date',
         ]);
 
-        $classManager->update($request->all());
+        DB::transaction(function () use ($request, $classManager) {
+
+            $classManager->update([
+                'student_id' => $request->student_id,
+                'class_id'   => $request->class_id,
+                'created_at' => $request->created_at,
+            ]);
+
+            Student::where('id', $request->student_id)
+                ->update([
+                    'class_id' => $request->class_id,
+                ]);
+
+        });
 
         return redirect()
-            ->route('class_managers.index')
-            ->with('success','Assignment updated successfully.');
+            ->route('class-managers.index')
+            ->with('success', 'Student class updated successfully.');
     }
 
     public function destroy(ClassManager $classManager)
@@ -79,7 +123,7 @@ class ClassManagerController extends Controller
         $classManager->delete();
 
         return redirect()
-            ->route('class_managers.index')
+            ->route('class-managers.index')
             ->with('success','Deleted successfully.');
     }
 }

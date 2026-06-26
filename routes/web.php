@@ -14,7 +14,7 @@ use App\Http\Controllers\AttendanceSessionController;
 use App\Http\Controllers\AttendanceController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])

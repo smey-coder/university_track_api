@@ -16,7 +16,7 @@
         </div>
 
         <div class="card-body">
-
+            <x-message />
             <form action="{{ route('class-managers.update', $classManager->id) }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -33,7 +33,6 @@
                         @endforeach
                     </select>
                 </div>
-
                 <!-- CLASS -->
                 <div class="mb-3">
                     <label class="form-label">Class</label>

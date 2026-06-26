@@ -93,8 +93,8 @@
                             <td>{{ $student->student_code }}</td>
 
                             <td>
-                                {{ $student->last_name_khmer }}
                                 {{ $student->first_name_khmer }}
+                                {{ $student->last_name_khmer }}
                             </td>
 
                             <td>

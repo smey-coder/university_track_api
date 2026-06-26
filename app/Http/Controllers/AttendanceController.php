@@ -10,12 +10,52 @@ use Illuminate\Support\Str;
 
 class AttendanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $attendances = Attendance::with([
-            'student',
-            'session'
-        ])->latest()->paginate(20);
+        $query = Attendance::with([
+            'student.classes',
+            'session.course'
+        ]);
+
+        // Search
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('attendance_code', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%")
+                ->orWhereHas('student', function ($student) use ($search) {
+
+                        $student->where('student_code', 'like', "%{$search}%")
+                                ->orWhere('first_name_english', 'like', "%{$search}%")
+                                ->orWhere('last_name_english', 'like', "%{$search}%");
+
+                })
+                ->orWhereHas('session.course', function ($course) use ($search) {
+
+                        $course->where('course_name', 'like', "%{$search}%");
+
+                })
+                ->orWhereHas('student.classes', function ($class) use ($search) {
+
+                        $class->where('class_name', 'like', "%{$search}%");
+
+                });
+
+            });
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $attendances = $query
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return view(
             'attendance_records.index',

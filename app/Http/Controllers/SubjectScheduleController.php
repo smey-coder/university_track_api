@@ -2,119 +2,230 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\SubjectSchedule;
 use App\Models\Course;
-use App\Models\StudentClass;
 use App\Models\Semester;
+use App\Models\StudentClass;
+use App\Models\SubjectSchedule;
 use App\Models\Teacher;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SubjectScheduleController extends Controller
 {
-    // ================= INDEX =================
+    /**
+     * Display a listing of schedules.
+     */
     public function index()
     {
-        $schedules = SubjectSchedule::with([
-            'course',
-            'class',
-            'semester',
-            'teacher'
-        ])->latest()->paginate(10);
+        try {
+            $schedules = SubjectSchedule::with([
+                'course',
+                'class',
+                'semester',
+                'teacher'
+            ])
+            ->latest()
+            ->paginate(10);
 
-        return view('subject_schedules.index', compact('schedules'));
+            return view('subject_schedules.index', compact('schedules'));
+
+        } catch (\Exception $e) {
+
+            Log::error('Subject Schedule Index Error: ' . $e->getMessage());
+
+            return redirect()->back()->with(
+                'error',
+                'Unable to load schedules.'
+            );
+        }
     }
 
-    // ================= CREATE =================
+    /**
+     * Show create form.
+     */
     public function create()
     {
-        $courses = Course::all();
-        $classes = StudentClass::all();
-        $semesters = Semester::all();
-        $teachers = Teacher::all();
+        try {
 
-        return view('subject_schedules.create', compact(
-            'courses',
-            'classes',
-            'semesters',
-            'teachers'
-        ));
+            $courses = Course::all();
+            $classes = StudentClass::all();
+            $semesters = Semester::all();
+            $teachers = Teacher::all();
+
+            return view('subject_schedules.create', compact(
+                'courses',
+                'classes',
+                'semesters',
+                'teachers'
+            ));
+
+        } catch (\Exception $e) {
+
+            Log::error('Create Schedule Error: ' . $e->getMessage());
+
+            return redirect()->back()->with(
+                'error',
+                'Unable to open create page.'
+            );
+        }
     }
 
-    // ================= STORE =================
+    /**
+     * Store a new schedule.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'course_id' => 'required',
-            'class_id' => 'required',
-            'semester_id' => 'required',
-            'day_of_week' => 'required',
-            'start_time' => 'required',
-            'end_time' => 'required',
-        ]);
+        try {
 
-        SubjectSchedule::create($request->all());
+            $validated = $request->validate([
+                'course_id'     => 'required|exists:courses,id',
+                'class_id'      => 'required|exists:classes,id',
+                'semester_id'   => 'required|exists:semesters,id',
+                'teacher_id'    => 'nullable|exists:teachers,id',
+                'day_of_week'   => 'required|string',
+                'start_time'    => 'required',
+                'end_time'      => 'required',
+                'room'          => 'nullable|string|max:100',
+                'created_at'    => 'nullable|date',
+                'updated_at'      => 'nullable|date|after_or_equal:created_at',
+                'status'        => 'required|in:active,finished',
+            ]);
 
-        return redirect()->route('subject-schedules.index')
-            ->with('success', 'Schedule created successfully');
+            SubjectSchedule::create($validated);
+
+            return redirect()
+                ->route('subject-schedules.index')
+                ->with('success', 'Schedule created successfully.');
+
+        } catch (\Exception $e) {
+
+            Log::error('Store Schedule Error: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create schedule.');
+        }
     }
 
-    // ================= SHOW =================
+    /**
+     * Show schedule details.
+     */
     public function show($id)
     {
-        $schedule = SubjectSchedule::with([
-            'course',
-            'class',
-            'semester',
-            'teacher'
-        ])->findOrFail($id);
+        try {
 
-        return view('subject_schedules.show', compact('schedule'));
+            $schedule = SubjectSchedule::with([
+                'course',
+                'class',
+                'semester',
+                'teacher'
+            ])->findOrFail($id);
+
+            return view('subject_schedules.show', compact('schedule'));
+
+        } catch (\Exception $e) {
+
+            Log::error('Show Schedule Error: ' . $e->getMessage());
+
+            return redirect()
+                ->route('subject-schedules.index')
+                ->with('error', 'Schedule not found.');
+        }
     }
 
-    // ================= EDIT =================
+    /**
+     * Show edit form.
+     */
     public function edit($id)
     {
-        $schedule = SubjectSchedule::findOrFail($id);
+        try {
 
-        $courses = Course::all();
-        $classes = StudentClass::all();
-        $semesters = Semester::all();
-        $teachers = Teacher::all();
+            $schedule = SubjectSchedule::findOrFail($id);
 
-        return view('subject_schedules.edit', compact(
-            'schedule',
-            'courses',
-            'classes',
-            'semesters',
-            'teachers'
-        ));
+            $courses = Course::all();
+            $classes = StudentClass::all();
+            $semesters = Semester::all();
+            $teachers = Teacher::all();
+
+            return view('subject_schedules.edit', compact(
+                'schedule',
+                'courses',
+                'classes',
+                'semesters',
+                'teachers'
+            ));
+
+        } catch (\Exception $e) {
+
+            Log::error('Edit Schedule Error: ' . $e->getMessage());
+
+            return redirect()
+                ->route('subject-schedules.index')
+                ->with('error', 'Unable to edit schedule.');
+        }
     }
 
-    // ================= UPDATE =================
+    /**
+     * Update schedule.
+     */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'course_id' => 'required',
-            'class_id' => 'required',
-            'semester_id' => 'required',
-            'day_of_week' => 'required',
-            'start_time' => 'required',
-            'end_time' => 'required',
-        ]);
+        try {
 
-        $schedule = SubjectSchedule::findOrFail($id);
-        $schedule->update($request->all());
+            $validated = $request->validate([
+                'course_id'     => 'required|exists:courses,id',
+                'class_id'      => 'required|exists:classes,id',
+                'semester_id'   => 'required|exists:semesters,id',
+                'teacher_id'    => 'nullable|exists:teachers,id',
+                'day_of_week'   => 'required|string',
+                'start_time'    => 'required',
+                'end_time'      => 'required',
+                'room'          => 'nullable|string|max:100',
+                'created_at'    => 'nullable|date',
+                'updated_at'      => 'nullable|date|after_or_equal:created_at',
+                'status'        => 'required|in:active,finished',
+            ]);
 
-        return redirect()->route('subject-schedules.index')
-            ->with('success', 'Schedule updated successfully');
+            $schedule = SubjectSchedule::findOrFail($id);
+
+            $schedule->update($validated);
+
+            return redirect()
+                ->route('subject-schedules.index')
+                ->with('success', 'Schedule updated successfully.');
+
+        } catch (\Exception $e) {
+
+            Log::error('Update Schedule Error: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update schedule.');
+        }
     }
 
-    // ================= DELETE =================
+    /**
+     * Delete schedule.
+     */
     public function destroy($id)
     {
-        SubjectSchedule::findOrFail($id)->delete();
+        try {
 
-        return redirect()->route('subject-schedules.index')
-            ->with('success', 'Schedule deleted successfully');
+            $schedule = SubjectSchedule::findOrFail($id);
+
+            $schedule->delete();
+
+            return redirect()
+                ->route('subject-schedules.index')
+                ->with('success', 'Schedule deleted successfully.');
+
+        } catch (\Exception $e) {
+
+            Log::error('Delete Schedule Error: ' . $e->getMessage());
+
+            return redirect()
+                ->route('subject-schedules.index')
+                ->with('error', 'Failed to delete schedule.');
+        }
     }
 }
