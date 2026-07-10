@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('attendance_records', AttendanceController::class);
 
     // =============================
-    // 🔢 MANUAL CODE SCAN
+    // MANUAL CODE SCAN
     // =============================
     Route::get('/attendance/scan', [AttendanceController::class, 'scanForm'])
         ->name('attendances.scan');
@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
         ->name('attendances.scan.process');
 
     // =============================
-    // 📱 QR SCAN PAGE (NEW UI PAGE)
+    // QR SCAN PAGE (NEW UI PAGE)
     // =============================
     Route::get('/attendance/scan-qr', [AttendanceController::class, 'scanQRPage'])
         ->name('attendances.scan.qr.page');

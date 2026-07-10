@@ -17,12 +17,15 @@ class Student extends Model
         'last_name_khmer',
         'first_name_english',
         'last_name_english',
+        'gender',
         'date_of_birth',
         'phone',
         'email',
         'address',
+        'photo',
+        'enrollment_date',
         'status',
-        'user_id'   // ✅ ADD THIS
+        'user_id',
     ];
 
     public $timestamps = true;

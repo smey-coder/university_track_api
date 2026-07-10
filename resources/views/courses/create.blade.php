@@ -21,7 +21,7 @@
                 </div>
 
                 <div class="card-body">
-
+                    <x-message />
                     <form method="POST" action="{{ route('courses.store') }}">
                         @csrf
 
@@ -106,11 +106,8 @@
 
                             <a href="{{ route('courses.index') }}"
                                class="btn btn-secondary">
-
                                 Cancel
-
                             </a>
-
                             <button type="submit"
                                     class="btn btn-success">
 

@@ -26,10 +26,11 @@ class CourseController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        try{
+            $request->validate([
             'course_code' => 'required|unique:courses',
             'department_id' => 'required',
-            'course_name' => 'required',
+            'course_name' => 'required|unique:courses',
             'credits' => 'required|integer',
         ]);
 
@@ -37,6 +38,12 @@ class CourseController extends Controller
 
         return redirect()->route('courses.index')
             ->with('success','Course created successfully');
+        }catch(\Exception $e){
+            return back()->with(
+                'error',
+                'Course manager not found or failed to create. ' . $e->getMessage()
+            );
+        }
     }
 
     public function show($id)

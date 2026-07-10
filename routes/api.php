@@ -12,108 +12,113 @@ use App\Http\Controllers\Api\TodayScheduleController;
 use App\Http\Controllers\Api\ClassRoomController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\AttendanceRecordController;
-/*
-|--------------------------------------------------------------------------
-| AUTH
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+//WebAPI
+use App\Http\Controllers\Api\Web_api\AuthController as WebApiAuthController;
+use App\Http\Controllers\Api\Web_api\StudentController as WebApiStudentController;
+use App\Http\Controllers\Api\Web_api\TeacherController as WebApiTeacherController;
+use App\Http\Controllers\Api\Web_api\DashboardController as WebApiDashboardController;
 
 /*
 |--------------------------------------------------------------------------
-| PROTECTED ROUTES (Flutter LOGIN REQUIRED)
+| FLUTTER MOBILE API ROUTES
 |--------------------------------------------------------------------------
 */
+Route::prefix('mobile')->group(function () {
+    // Departments (Using resource routing shorthand for cleaner code)
+    Route::apiResource('departments', DepartmentController::class);
 
-Route::middleware('auth:sanctum')->group(function () {
+    // Public Auth
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login'])->name('mobile.login');
 
-    // User
-    Route::get('/user', function (Request $request) {
-        return $request->user();
+    // Protected Routes
+    Route::middleware('auth:sanctum')->group(function () {
+        
+        Route::get('/user', function (Request $request) {
+            return $request->user();
+        });
+        
+        Route::get('/dashboard', [AuthController::class, 'dashboard']);
+        Route::post('/logout', [SettingController::class, 'logout']); // Unified logout
+
+        // Students
+        Route::get('/students', [StudentController::class, 'index']);
+        Route::get('/students/{id}', [StudentController::class, 'show']);
+
+        // Assignments & Submissions
+        Route::get('/assignments', [AssignmentController::class, 'index']);
+        Route::get('/assignment-submissions', [AssignmentSubmissionController::class, 'index']);
+        Route::get('/assignment-submissions/{id}', [AssignmentSubmissionController::class, 'show']);
+        Route::post('/assignment-submissions', [AssignmentSubmissionController::class, 'store']);
+
+        // Schedules & Classroom
+        Route::get('/subject-schedules', [SubjectScheduleController::class, 'index']);
+        Route::get('/today-schedules', [TodayScheduleController::class, 'index']);
+        Route::get('/class-room', [ClassRoomController::class, 'index']);
+        
+        // Profile & Settings
+        Route::get('/profile', [SettingController::class, 'profile']);
+        Route::put('/profile/update', [SettingController::class, 'updateProfile']);
+        Route::post('/change-password', [SettingController::class, 'changePassword']);
+
+        // Attendance Records
+        Route::get('/attendance', [AttendanceRecordController::class, 'index']);
+        Route::post('/attendance/create', [AttendanceRecordController::class, 'scan']);
+        Route::get('/attendance/summary', [AttendanceRecordController::class, 'summary']);
+        Route::get('/attendance/subjects', [AttendanceRecordController::class, 'subjectAttendance']);
+        Route::get('/attendance/courseSummary', [AttendanceRecordController::class, 'courseSummary']);
     });
-
-    // Dashboard
-    Route::get('/dashboard', [AuthController::class, 'dashboard']);
-
-    // Logout
-    Route::post('/logout', function (Request $request) {
-        $request->user()->tokens()->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully'
-        ]);
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEPARTMENTS
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | STUDENTS
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/students', [StudentController::class, 'index']);
-    Route::get('/students/{id}', [StudentController::class, 'show']);
-
-
-    //Assignment
-    Route::get('/assignments', [AssignmentController::class, 'index']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | ASSIGNMENT SUBMISSIONS (NEW)
-    |--------------------------------------------------------------------------
-    */
-
-     Route::get('/assignment-submissions', 
-        [AssignmentSubmissionController::class, 'index']
-    );
-
-    //Get single submission
-    Route::get('/assignment-submissions/{id}', 
-        [AssignmentSubmissionController::class, 'show']
-    );
-
-    // Submit assignment (student only)
-    Route::post('/assignment-submissions', 
-        [AssignmentSubmissionController::class, 'store']
-    );
-
-    Route::get('/subject-schedules',
-        [SubjectScheduleController::class, 'index']
-    );
-    Route::get('/today-schedules',[TodayScheduleController::class, 'index']);
-    Route::get('/class-room',[ClassRoomController::class, 'index']);
-    Route::get('/profile',[SettingController::class, 'profile']);
-    Route::put('/profile/update',[SettingController::class, 'updateProfile']);
-    Route::post('/change-password',[SettingController::class, 'changePassword']);
-    Route::post('/logout',[SettingController::class, 'logout']);
-
-    //Attendance Recorde
-    Route::get('/attendance', [AttendanceRecordController::class, 'index']);
-    Route::post('/attendance/create', [AttendanceRecordController::class, 'scan']);
-    Route::get('/attendance/summary',[AttendanceRecordController::class, 'summary']);
-    Route::get('/attendance/subjects',[AttendanceRecordController::class, 'subjectAttendance']);
-    Route::get('/attendance/courseSummary',[AttendanceRecordController::class, 'courseSummary']);
-
 });
+
+/*
+|--------------------------------------------------------------------------
+| WEB API ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::prefix('web')->group(function () {
+    Route::apiResource('departments', DepartmentController::class);
+    // Public Auth
+    Route::post('/register', [WebApiAuthController::class, 'register']); 
+    Route::post('/login', [WebApiAuthController::class, 'login'])->name('web.login'); 
+    // Protected Routes
+    Route::middleware('auth:sanctum')->group(function () { 
+        Route::get('/user', function (Request $request) {
+            return $request->user();
+        });
+        Route::get('/dashboard', [WebApiAuthController::class, 'dashboard']); 
+        Route::post('/logout', [WebApiAuthController::class, 'logout'])->name('web.logout'); 
+
+        // Dropdowns dictionary metadata lookup endpoint
+        Route::get('/students/form-dependencies', [WebApiStudentController::class, 'getFormDataDependencies']);
+        Route::get('/teachers/form-dependencies', [WebApiTeacherController::class, 'getFormDataDependencies']);
+        
+        // Core CRUD resource mapping endpoints
+        Route::apiResource('students', WebApiStudentController::class);
+
+        // Route::apiResource('teachers', WebApiTeacherController::class);
+
+        //Teacher
+        Route::get('/teachers', [WebApiTeacherController::class, 'index']);
+        Route::post('/teachers', [WebApiTeacherController::class, 'store']);
+        Route::get('/teachers/{id}', [WebApiTeacherController::class, 'show']);
+        Route::put('/teachers/{id}', [WebApiTeacherController::class, 'update']);
+        Route::delete('/teachers/{id}', [WebApiTeacherController::class, 'destroy']);
+
+        //Dashboard
+        Route::get('/dashboards', [WebApiDashboardController::class, 'index']);
+        Route::post('/dashboards', [WebApiDashboardController::class, 'store']);
+        Route::get('/dashboards/{id}', [WebApiDashboardController::class, 'show']);
+        Route::put('/dashboards/{id}', [WebApiDashboardController::class, 'update']);
+        Route::delete('/dashboards/{id}', [WebApiDashboardController::class, 'destroy']);
+    }); 
+});
+
 
 //For test
 //-----------------------------------------------------------------
-// Route::get('/assignments', [AssignmentController::class, 'index']);
 
-//  Route::get('/subject-schedules',
-//         [SubjectScheduleController::class, 'index']
-//     );
-
-Route::get('/departments', [DepartmentController::class, 'index']);
-Route::post('/departments', [DepartmentController::class, 'store']);
-Route::get('/departments/{id}', [DepartmentController::class, 'show']);
-Route::put('/departments/{id}', [DepartmentController::class, 'update']);
-Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+// Route::get('/departments', [DepartmentController::class, 'index']);
+// Route::post('/departments', [DepartmentController::class, 'store']);
+// Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+// Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+// Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);

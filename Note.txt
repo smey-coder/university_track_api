@@ -1,0 +1,2 @@
+1.php artisan make:controller Api/Web_api/DepartmentController
+2.
