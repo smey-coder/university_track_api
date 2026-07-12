@@ -17,6 +17,12 @@ use App\Http\Controllers\Api\Web_api\AuthController as WebApiAuthController;
 use App\Http\Controllers\Api\Web_api\StudentController as WebApiStudentController;
 use App\Http\Controllers\Api\Web_api\TeacherController as WebApiTeacherController;
 use App\Http\Controllers\Api\Web_api\DashboardController as WebApiDashboardController;
+use App\Http\Controllers\Api\Web_api\DepartmentController as WebApiDepartmentController;
+use App\Http\Controllers\Api\Web_api\RoleController as WebApiRoleController;
+use App\Http\Controllers\Api\Web_api\PermissionController as WebApiPermissionController;
+use App\Http\Controllers\Api\Web_api\RolePermissionController as WebApiRolePermissionController;
+use App\Http\Controllers\Api\Web_api\UserRoleController as WebApiUserRoleController;
+use App\Http\Controllers\Api\Web_api\UserController as WebApiUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,13 +85,115 @@ Route::prefix('web')->group(function () {
     Route::apiResource('departments', DepartmentController::class);
     // Public Auth
     Route::post('/register', [WebApiAuthController::class, 'register']); 
+    Route::post('/activate/student', [WebApiAuthController::class,'activateStudent']);
+    Route::post('/activate/teacher',[WebApiAuthController::class,'activateTeacher']);
     Route::post('/login', [WebApiAuthController::class, 'login'])->name('web.login'); 
+
+    //Test
+    // Route::apiResource('/permissions', WebApiPermissionController::class);
+
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () { 
+        // Route::get('/user', function (Request $request) {
+        //     return $request->user();
+        // });
         Route::get('/user', function (Request $request) {
-            return $request->user();
+            $user = $request->user();
+            return response()->json([
+                "id" => $user->id,
+                "username" => $user->username,
+                "email" => $user->email,
+                // Important
+                "role" => strtolower(
+                    $user->getRoleNames()->first()
+                ),
+                "roles" => $user->getRoleNames(),
+                "permissions" =>
+                    $user->getAllPermissions()
+                    ->pluck('name')
+                    ->values()
+            ]);
         });
-        Route::get('/dashboard', [WebApiAuthController::class, 'dashboard']); 
+
+        //RBAC
+        // User List + Show
+        Route::get(
+            '/users',
+            [WebApiUserController::class,'index']
+        )
+        ->middleware('permission:user.view');
+
+
+        Route::get(
+            '/users/{id}',
+            [WebApiUserController::class,'show']
+        )
+        ->middleware('permission:user.view');
+        // Create User
+        Route::post(
+            '/users',
+            [WebApiUserController::class,'store']
+        )
+        ->middleware('permission:user.create');
+        // Update User
+        Route::put(
+            '/users/{id}',
+            [WebApiUserController::class,'update']
+        )
+        ->middleware('permission:user.update');
+
+
+
+        // Delete User
+        Route::delete(
+            '/users/{id}',
+            [WebApiUserController::class,'destroy']
+        )
+        ->middleware('permission:user.delete');
+
+        // Role dropdown
+        Route::get(
+            '/user-roles',
+            [WebApiUserController::class,'roles']
+        )
+        ->middleware('permission:user.create|user.update');
+
+        Route::apiResource('/roles', WebApiRoleController::class);
+        Route::apiResource('/permissions', WebApiPermissionController::class);
+
+        // Get role permissions
+        Route::get(
+            '/roles/{roleId}/permissions',
+            [WebApiRolePermissionController::class,'show']
+        );
+        // Assign permissions
+        Route::post(
+            '/roles/{roleId}/permissions',
+            [WebApiRolePermissionController::class,'store']
+        );
+        // Remove permission
+        Route::delete(
+            '/roles/{roleId}/permissions',
+            [WebApiRolePermissionController::class,'destroy']
+        );
+        //--------------------------------------------------
+        // Get user roles
+        Route::get(
+            '/users/{userId}/roles',
+            [WebApiUserRoleController::class,'show']
+        );
+        // Assign roles
+        Route::post(
+            '/users/{userId}/roles',
+            [WebApiUserRoleController::class,'store']
+        );
+        // Remove role
+        Route::delete(
+            '/users/{userId}/roles',
+            [WebApiUserRoleController::class,'destroy']
+        );
+
+        // Route::get('/dashboard', [WebApiAuthController::class, 'dashboard']); 
         Route::post('/logout', [WebApiAuthController::class, 'logout'])->name('web.logout'); 
 
         // Dropdowns dictionary metadata lookup endpoint
@@ -93,23 +201,87 @@ Route::prefix('web')->group(function () {
         Route::get('/teachers/form-dependencies', [WebApiTeacherController::class, 'getFormDataDependencies']);
         
         // Core CRUD resource mapping endpoints
-        Route::apiResource('students', WebApiStudentController::class);
+        Route::get('/students', [WebApiStudentController::class, 'index'])
+            ->middleware('permission:student.view');
+
+        Route::post('/students', [WebApiStudentController::class, 'store'])
+            ->middleware('permission:student.create');
+
+        Route::get('/students/{student}', [WebApiStudentController::class, 'show'])
+            ->middleware('permission:student.view');
+
+        Route::put('/students/{student}', [WebApiStudentController::class, 'update'])
+            ->middleware('permission:student.update');
+
+        Route::delete('/students/{student}', [WebApiStudentController::class, 'destroy'])
+            ->middleware('permission:student.delete');
 
         // Route::apiResource('teachers', WebApiTeacherController::class);
 
         //Teacher
-        Route::get('/teachers', [WebApiTeacherController::class, 'index']);
-        Route::post('/teachers', [WebApiTeacherController::class, 'store']);
-        Route::get('/teachers/{id}', [WebApiTeacherController::class, 'show']);
-        Route::put('/teachers/{id}', [WebApiTeacherController::class, 'update']);
-        Route::delete('/teachers/{id}', [WebApiTeacherController::class, 'destroy']);
+        // Route::get('/teachers', [WebApiTeacherController::class, 'index']);
+        // Route::post('/teachers', [WebApiTeacherController::class, 'store']);
+        // Route::get('/teachers/{id}', [WebApiTeacherController::class, 'show']);
+        // Route::put('/teachers/{id}', [WebApiTeacherController::class, 'update']);
+        // Route::delete('/teachers/{id}', [WebApiTeacherController::class, 'destroy']);
+        Route::get('/teachers', [WebApiTeacherController::class, 'index'])
+            ->middleware('permission:teacher.view');
+
+        Route::post('/teachers', [WebApiTeacherController::class, 'store'])
+            ->middleware('permission:teacher.create');
+
+        Route::get('/teachers/{id}', [WebApiTeacherController::class, 'show'])
+            ->middleware('permission:teacher.view');
+
+        Route::put('/teachers/{id}', [WebApiTeacherController::class, 'update'])
+            ->middleware('permission:teacher.update');
+
+        Route::delete('/teachers/{id}', [WebApiTeacherController::class, 'destroy'])
+            ->middleware('permission:teacher.delete');
 
         //Dashboard
-        Route::get('/dashboards', [WebApiDashboardController::class, 'index']);
+        Route::get(
+            '/dashboards',
+            [WebApiDashboardController::class, 'index']
+        )->middleware('permission:dashboard.view');
+
         Route::post('/dashboards', [WebApiDashboardController::class, 'store']);
         Route::get('/dashboards/{id}', [WebApiDashboardController::class, 'show']);
         Route::put('/dashboards/{id}', [WebApiDashboardController::class, 'update']);
         Route::delete('/dashboards/{id}', [WebApiDashboardController::class, 'destroy']);
+
+        //Department
+        // Route::get('/departments', [WebApiDepartmentController::class, 'index']);
+        // Route::post('/departments', [WebApiDepartmentController::class, 'store']);
+        // Route::get('/departments/{id}', [WebApiDepartmentController::class, 'show']);
+        // Route::put('/departments/{id}', [WebApiDepartmentController::class, 'update']);
+        // Route::delete('/departments/{id}', [WebApiDepartmentController::class, 'destroy']);
+        Route::get(
+            '/departments',
+            [WebApiDepartmentController::class, 'index']
+        )->middleware('permission:department.view');
+
+        Route::post(
+            '/departments',
+            [WebApiDepartmentController::class, 'store']
+        )->middleware('permission:department.create');
+
+        Route::get(
+            '/departments/{id}',
+            [WebApiDepartmentController::class, 'show']
+        )->middleware('permission:department.view');
+
+        Route::put(
+            '/departments/{id}',
+            [WebApiDepartmentController::class, 'update']
+        )->middleware('permission:department.update');
+
+        Route::delete(
+            '/departments/{id}',
+            [WebApiDepartmentController::class, 'destroy']
+        )->middleware('permission:department.delete');
+
+        
     }); 
 });
 

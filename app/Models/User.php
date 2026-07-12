@@ -6,10 +6,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+
+    /**
+     * Spatie Permission Guard
+     */
+    protected $guard_name = 'sanctum';
+
 
     /**
      * Mass assignable fields
@@ -17,19 +25,20 @@ class User extends Authenticatable
     protected $fillable = [
         'username',
         'email',
-        'role',
         'password',
         'is_active',
         'last_login'
     ];
 
+
     /**
-     * Hidden fields (do not return in API)
+     * Hidden fields
      */
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
 
     /**
      * Cast attributes
@@ -41,33 +50,13 @@ class User extends Authenticatable
         'last_login' => 'datetime',
     ];
 
+
     /**
-     * Relationship (optional)
+     * Relationship with Student
      */
     public function student()
     {
         return $this->hasOne(Student::class, 'user_id', 'id');
     }
 
-    // public function roles()
-    // {
-    //     return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
-    // }
-
-    // public function permissions()
-    // {
-    //     // Return a collection of permissions gathered from the user's roles.
-    //     return $this->roles()
-    //         ->with('permissions')
-    //         ->get()
-    //         ->pluck('permissions')
-    //         ->flatten()
-    //         ->unique('id')
-    //         ->values();
-    // }
-
-    // public function hasRole($role)
-    // {
-    //     return $this->roles()->where('name', $role)->exists();
-    // }
 }

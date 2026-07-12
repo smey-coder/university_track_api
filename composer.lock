@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9e3aa73564f5d21ae5fed5bc1ca1f533",
+    "content-hash": "e7c796bfa8cef09bbfd7adec50ac328f",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3603,16 +3603,16 @@
         },
         {
             "name": "spatie/laravel-permission",
-            "version": "8.0.0",
+            "version": "8.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-permission.git",
-                "reference": "70a6ab04108616b438e0839598f473b513281644"
+                "reference": "60e8ed5b2fbf043c2264433fc2680c76b8b66aa6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/70a6ab04108616b438e0839598f473b513281644",
-                "reference": "70a6ab04108616b438e0839598f473b513281644",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/60e8ed5b2fbf043c2264433fc2680c76b8b66aa6",
+                "reference": "60e8ed5b2fbf043c2264433fc2680c76b8b66aa6",
                 "shasum": ""
             },
             "require": {
@@ -3625,6 +3625,7 @@
             },
             "require-dev": {
                 "larastan/larastan": "^3.9",
+                "laravel/octane": "^2.0",
                 "laravel/passport": "^13.0",
                 "laravel/pint": "^1.0",
                 "orchestra/testbench": "^10.0|^11.0",
@@ -3678,7 +3679,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-permission/issues",
-                "source": "https://github.com/spatie/laravel-permission/tree/8.0.0"
+                "source": "https://github.com/spatie/laravel-permission/tree/8.3.0"
             },
             "funding": [
                 {
@@ -3686,7 +3687,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-30T19:30:22+00:00"
+            "time": "2026-07-03T15:36:01+00:00"
         },
         {
             "name": "symfony/clock",

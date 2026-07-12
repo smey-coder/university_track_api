@@ -1,2 +1,2 @@
 1.php artisan make:controller Api/Web_api/DepartmentController
-2.
+2.php artisan make:controller Api/Web_api/PermissionController --api

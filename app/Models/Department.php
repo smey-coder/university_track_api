@@ -19,7 +19,7 @@ class Department extends Model
         'status',
     ];
 
-    // ✅ FORCE INTEGER TYPE FOR API
+    // FORCE INTEGER TYPE FOR API
     protected $casts = [
         'id' => 'integer',
     ];
