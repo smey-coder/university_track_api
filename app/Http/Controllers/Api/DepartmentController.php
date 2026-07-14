@@ -12,21 +12,57 @@ class DepartmentController extends Controller
      * GET ALL DEPARTMENTS
      * For Flutter dropdown
      */
-    public function index()
+    public function index(Request $request)
     {
-        $departments = Department::select(
-            'id',
-            'department_code',
-            'department_name_khmer',
-            'department_name_english',
-            'description',
-            'status'
-        )->get();
+        try {
 
-        return response()->json([
-            'success' => true,
-            'data' => $departments
-        ]);
+            $query = Department::select(
+                'id',
+                'department_code',
+                'department_name_khmer',
+                'department_name_english',
+                'description',
+                'status'
+            )->orderBy('department_name_english');
+
+            // Return all departments (for dropdowns)
+            if ($request->boolean('all')) {
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Departments retrieved successfully.',
+                    'data' => $query->get()
+                ], 200);
+
+            }
+
+            // Return paginated departments
+            $perPage = $request->get('per_page', 10);
+
+            $departments = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Departments retrieved successfully.',
+                'data' => $departments,
+                'pagination' => [
+                    'total'        => $departments->total(),
+                    'count'        => $departments->count(),
+                    'per_page'     => $departments->perPage(),
+                    'current_page' => $departments->currentPage(),
+                    'total_pages'  => $departments->lastPage()
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve departments.',
+                'error' => $e->getMessage()
+            ], 500);
+
+        }
     }
 
     /**

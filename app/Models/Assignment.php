@@ -33,7 +33,36 @@ class Assignment extends Model
     }
 
     public function submissions()
-{
-    return $this->hasMany(AssignmentSubmission::class);
-}
+    {
+        return $this->hasMany(AssignmentSubmission::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+
+        static::retrieved(function ($assignment) {
+
+
+            if(
+                $assignment->status === "Open"
+                &&
+                now()->greaterThan(
+                    $assignment->due_date
+                )
+            ){
+
+                $assignment->update([
+
+                    'status'=>'Closed'
+
+                ]);
+
+            }
+
+
+        });
+
+    }
 }

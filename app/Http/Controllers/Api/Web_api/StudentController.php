@@ -46,7 +46,6 @@ class StudentController extends Controller
             'classes' => $classes
         ], 200);
     }
-
     /**
      * Store a newly created student.
      */
@@ -67,14 +66,12 @@ class StudentController extends Controller
             'address'            => 'nullable',
             'photo'              => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'enrollment_date'    => 'nullable|date',
-            'status'             => 'required',
+            // 'status' => 'required|in:Pending,Active,Graduated,Suspended',
         ]);
         $photo = null;
-
         if ($request->hasFile('photo')) {
             $photo = $request->file('photo')->store('students', 'public');
         }
-
         $student = Student::create([
             'student_code'       => $request->student_code,
             'department_id'      => $request->department_id,
@@ -90,9 +87,8 @@ class StudentController extends Controller
             'address'            => $request->address,
             'photo'              => $photo,
             'enrollment_date'    => $request->enrollment_date,
-            'status'             => $request->status,
+            'status'             => 'Pending',
         ]);
-
         return response()->json([
             'success' => true,
             'message' => 'Student registered successfully.',
@@ -149,7 +145,7 @@ class StudentController extends Controller
             'address'            => 'nullable',
             'photo'              => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'enrollment_date'    => 'nullable|date',
-            'status'             => 'required',
+            'status' => 'required|in:Pending,Active,Graduated,Suspended',
         ]);
 
         if ($request->hasFile('photo')) {

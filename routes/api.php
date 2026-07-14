@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+//Mobile app API
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\StudentController;
@@ -12,7 +13,7 @@ use App\Http\Controllers\Api\TodayScheduleController;
 use App\Http\Controllers\Api\ClassRoomController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\AttendanceRecordController;
-//WebAPI
+//Web App API
 use App\Http\Controllers\Api\Web_api\AuthController as WebApiAuthController;
 use App\Http\Controllers\Api\Web_api\StudentController as WebApiStudentController;
 use App\Http\Controllers\Api\Web_api\TeacherController as WebApiTeacherController;
@@ -23,6 +24,8 @@ use App\Http\Controllers\Api\Web_api\PermissionController as WebApiPermissionCon
 use App\Http\Controllers\Api\Web_api\RolePermissionController as WebApiRolePermissionController;
 use App\Http\Controllers\Api\Web_api\UserRoleController as WebApiUserRoleController;
 use App\Http\Controllers\Api\Web_api\UserController as WebApiUserController;
+use App\Http\Controllers\Api\Web_api\CourseController as WebApiCourseController;
+use App\Http\Controllers\Api\Web_api\AssignmentController as WebApiAssignmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,16 +85,22 @@ Route::prefix('mobile')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('web')->group(function () {
-    Route::apiResource('departments', DepartmentController::class);
+    //Public for test
+    // Route::get('/courses', [WebApiCourseController::class, 'index']);
+    // Route::get('/get-form-data-dependencies', [WebApiCourseController::class, 'getFormDataDependencies']);
+    // Route::post('/courses/create', [WebApiCourseController::class, 'store']);
+    // Route::put('/courses/update/{id}', [WebApiCourseController::class, 'update']);
+    // Route::delete('/courses/delete/{id}', [WebApiCourseController::class, 'destroy']);
     // Public Auth
     Route::post('/register', [WebApiAuthController::class, 'register']); 
     Route::post('/activate/student', [WebApiAuthController::class,'activateStudent']);
     Route::post('/activate/teacher',[WebApiAuthController::class,'activateTeacher']);
     Route::post('/login', [WebApiAuthController::class, 'login'])->name('web.login'); 
 
+    Route::get('/departments/dropdown', [WebApiDepartmentController::class, 'dropdown']);
+
     //Test
     // Route::apiResource('/permissions', WebApiPermissionController::class);
-
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () { 
         // Route::get('/user', function (Request $request) {
@@ -281,7 +290,24 @@ Route::prefix('web')->group(function () {
             [WebApiDepartmentController::class, 'destroy']
         )->middleware('permission:department.delete');
 
-        
+        Route::prefix('/courses')->group(function () {
+            Route::get('/', [WebApiCourseController::class, 'index']);
+            Route::get('/create-data', [WebApiCourseController::class, 'getFormDataDependencies']);
+            Route::post('/create', [WebApiCourseController::class, 'store']);
+            Route::get('/show/{id}', [WebApiCourseController::class, 'show']);
+            Route::put('/update/{id}', [WebApiCourseController::class, 'update']);
+            Route::delete('/delete/{id}', [WebApiCourseController::class, 'destroy']);
+        });
+
+        Route::prefix('/assignments')->group(function(){
+            Route::get('/',[WebApiAssignmentController::class,'index']);
+            Route::get('/form-data',[WebApiAssignmentController::class,'getFormDataDependencies']);
+            Route::post('/create',[WebApiAssignmentController::class,'store']);
+            Route::get('/show/{id}',[WebApiAssignmentController::class,'show']);
+            Route::put('/update/{id}',[WebApiAssignmentController::class,'update']);
+            Route::delete('/delete/{id}',[WebApiAssignmentController::class,'destroy']);
+        });
+       
     }); 
 });
 

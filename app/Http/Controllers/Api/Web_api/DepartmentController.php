@@ -14,28 +14,39 @@ class DepartmentController extends Controller
      */
     public function index(Request $request)
     {
-        try {
-
-            $perPage = $request->get('per_page', 10);
-
-            $departments = Department::withCount([
+       try {
+            $query = Department::withCount([
                 'students',
                 'courses',
                 'classes'
-            ])
-            ->latest()
-            ->paginate($perPage);
+            ])->latest();
+
+            // Return all departments
+            if ($request->boolean('all')) {
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Departments retrieved successfully.',
+                    'data' => $query->get()
+                ], 200);
+
+            }
+
+            // Paginated departments
+            $perPage = $request->get('per_page', 10);
+
+            $departments = $query->paginate($perPage);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Departments retrieved successfully.',
                 'data' => $departments,
                 'pagination' => [
-                'total'        => $departments->total(),
-                'count'        => $departments->count(),
-                'per_page'     => $departments->perPage(),
-                'current_page' => $departments->currentPage(),
-                'total_pages'  => $departments->lastPage()
+                    'total'        => $departments->total(),
+                    'count'        => $departments->count(),
+                    'per_page'     => $departments->perPage(),
+                    'current_page' => $departments->currentPage(),
+                    'total_pages'  => $departments->lastPage()
                 ]
             ], 200);
 
@@ -46,7 +57,24 @@ class DepartmentController extends Controller
                 'message' => 'Failed to retrieve departments.',
                 'error' => $e->getMessage()
             ], 500);
+
         }
+    }
+    public function dropdown()
+    {
+        $departments = Department::select(
+            'id',
+            'department_name_english',
+            'department_name_khmer'
+        )
+        ->where('status', 'Active')
+        ->orderBy('department_name_english')
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $departments
+        ]);
     }
 
     /**

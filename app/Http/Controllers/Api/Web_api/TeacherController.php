@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
 use App\Models\Department;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
@@ -51,7 +52,6 @@ class TeacherController extends Controller
             'address'             => 'nullable|string',
             'photo'               => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'hire_date'           => 'nullable|date',
-            'status'              => 'required|in:Active,Inactive',
         ]);
 
         $photo = null;
@@ -74,7 +74,7 @@ class TeacherController extends Controller
             'address'             => $request-> address,
             'photo'               => $request-> photo,
             'hire_date'           => $request-> hire_date,
-            'status'              => $request-> status,
+            'status'              => 'Inactive',
         ]);
 
         return response()->json([
@@ -101,6 +101,8 @@ class TeacherController extends Controller
 
     public function update(Request $request,string $id){
         $teacher = Teacher::find($id);
+        $user = User::find($teacher->user_id);
+
         if(!$teacher) {
             return response()->json([
                 'success' => false,
@@ -122,7 +124,7 @@ class TeacherController extends Controller
             'address'             => 'nullable|string',
             'photo'               => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'hire_date'           => 'nullable|date',
-            'status'              => 'required|in:Active,Inactive',
+            'status'              => 'in:Active,Inactive',
         ]);
 
         if ($request->hasFile('photo')) {
@@ -136,6 +138,11 @@ class TeacherController extends Controller
 
         $teacher->update($request->except('photo'));
 
+        //When updated info teacher
+        $user->update([
+                'username' => $teacher->first_name_english . ' ' . $teacher->last_name_english,
+                'email' => $request->email ?? $teacher->email,
+        ]);
         return response()->json([
             'success' => true,
             'message' => 'Teacher profile updated successfully.',

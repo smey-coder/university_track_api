@@ -1,0 +1,530 @@
+Here is a README.md document for your University Track Assignment Management Flow (Laravel API + React Admin + Teacher Role).
+
+# 📚 Assignment Management Flow
+## University Track System
+
+Assignment Management allows Admin and Teacher users to create, update, view, and manage assignments for students.
+
+The system uses **Role-Based Access Control (RBAC)** with Laravel Sanctum authentication and Spatie Permission.
+
+---
+
+# 1. User Roles
+
+The Assignment module supports two main roles:
+
+## 👑 Admin
+
+Admin can:
+
+- View all assignments
+- Create assignments
+- Select any teacher
+- Select courses belonging to the selected teacher
+- Update any assignment
+- Delete assignments
+
+Flow:
+
+
+Admin Login
+|
+|
+Assignment Management
+|
+|
+Select Teacher
+|
+|
+Load Teacher Courses
+|
+|
+Create Assignment
+|
+|
+Students can view assignment
+
+
+---
+
+## 👨‍🏫 Teacher
+
+Teacher can:
+
+- View own assignments
+- Create assignments
+- Update own assignments
+- Select only courses assigned to themselves
+- Cannot edit another teacher's assignment
+
+Flow:
+
+
+Teacher Login
+|
+|
+System detects teacher profile
+|
+|
+Load teacher courses
+|
+|
+Create Assignment
+|
+|
+Students receive assignment
+
+
+---
+
+# 2. Database Structure
+
+## assignments table
+
+
+assignments
+
+id
+assignment_code
+course_id
+teacher_id
+title
+description
+due_date
+total_score
+status
+
+created_at
+updated_at
+
+
+---
+
+## courses table
+
+
+courses
+
+id
+course_code
+course_name
+teacher_id
+status
+
+created_at
+updated_at
+
+
+Relationship:
+
+
+Teacher
+|
+|
+|---- Course
+|
+|
+|---- Assignment
+
+
+---
+
+# 3. Assignment Code Generation
+
+Assignment code is generated automatically.
+
+Format:
+
+
+AS-{TeacherName}-{Year}-{Day}
+
+
+Example:
+
+
+AS-DARA-2026-MON
+
+
+Structure:
+
+
+AS
+|
+Assignment prefix
+
+DARA
+|
+Teacher short name
+
+2026
+|
+Current year
+
+MON
+|
+Created day
+
+
+---
+
+# 4. Create Assignment Flow
+
+
+## Admin Create
+
+Request:
+
+
+POST
+
+/api/web/assignments
+
+
+
+Data:
+
+```json
+{
+    "course_id":1,
+    "teacher_id":5,
+    "title":"Database Homework",
+    "description":"ER Diagram Assignment",
+    "due_date":"2026-08-20",
+    "total_score":100,
+    "status":"Open"
+}
+
+Process:
+
+Validate request
+
+      |
+
+Check teacher
+
+      |
+
+Check course belongs to teacher
+
+      |
+
+Generate assignment_code
+
+      |
+
+Create assignment
+
+      |
+
+Return assignment
+Teacher Create
+
+Teacher sends:
+
+{
+    "course_id":1,
+    "title":"Flutter Project",
+    "description":"Build UI",
+    "due_date":"2026-08-30",
+    "total_score":50,
+    "status":"Open"
+}
+
+System:
+
+Find teacher by user_id
+
+        |
+
+Check course ownership
+
+        |
+
+Generate code
+
+        |
+
+Create assignment
+5. Course Loading Flow
+Admin
+
+API:
+
+GET
+
+/api/web/assignments/form-data
+
+Response:
+
+{
+ "courses":[
+    {
+      "id":1,
+      "course_name":"Database",
+      "teacher_id":5
+    }
+ ],
+
+ "teachers":[
+    {
+      "id":5,
+      "name":"Dara"
+    }
+ ]
+}
+
+UI:
+
+Select Teacher
+
+      |
+
+Filter Courses
+
+      |
+
+Show only teacher courses
+Teacher
+
+System:
+
+Login User ID
+
+        |
+
+Find Teacher Profile
+
+        |
+
+Get teacher_id
+
+        |
+
+Load Courses
+
+        |
+
+Show dropdown
+6. Update Assignment Flow
+
+API:
+
+PUT
+
+/api/web/assignments/update/{id}
+
+Validation:
+
+course_id required
+
+title required
+
+due_date required
+
+total_score required
+
+status required
+Admin Update
+Admin
+
+ |
+Select Teacher
+
+ |
+Select Course
+
+ |
+Update Assignment
+
+ |
+Save
+Teacher Update
+Teacher
+
+ |
+Open Own Assignment
+
+ |
+Change Course/Info
+
+ |
+Save
+
+
+Permission check:
+
+assignment.teacher_id
+
+        ==
+
+current teacher.id
+
+If false:
+
+Response:
+
+{
+ "success":false,
+ "message":"You cannot edit this assignment"
+}
+7. Automatic Close Assignment
+
+System checks:
+
+Current Date
+
+       >
+
+due_date
+
+Then:
+
+status = Closed
+
+Example:
+
+Before:
+
+Due Date:
+2026-07-20
+
+Status:
+Open
+
+After:
+
+Date:
+2026-07-21
+
+Status:
+Closed
+8. View Assignment
+
+API:
+
+GET
+
+/api/web/assignments/{id}
+
+Response:
+
+{
+ "id":10,
+
+ "assignment_code":
+ "AS-DARA-2026-MON",
+
+ "course":{
+    "course_name":"Database"
+ },
+
+ "teacher":{
+    "name":"Dara"
+ }
+}
+9. Delete Assignment
+
+API:
+
+DELETE
+
+/api/web/assignments/{id}
+
+Admin:
+
+Can delete all assignments
+
+Teacher:
+
+Can delete own assignments only
+10. React Component Structure
+src
+
+ └── pages
+
+      └── assignments
+
+            ├── Index.jsx
+
+            ├── CreateModal.jsx
+
+            ├── UpdateModal.jsx
+
+            ├── ShowModal.jsx
+
+            └── assignments.css
+
+11. Permission Structure
+
+Database permissions:
+
+assignment.view
+
+assignment.create
+
+assignment.update
+
+assignment.delete
+
+Example:
+
+Admin:
+
+assignment.view
+assignment.create
+assignment.update
+assignment.delete
+
+Teacher:
+
+assignment.view
+assignment.create
+assignment.update
+
+Student:
+
+assignment.view
+12. Final Assignment Flow
+LOGIN
+
+ |
+
+Check Role
+
+ |
+
+---------------------
+
+Admin              Teacher
+
+ |                    |
+
+Choose Teacher       Detect Teacher
+
+ |                    |
+
+Load Courses         Load Own Courses
+
+ |                    |
+
+Create Assignment
+
+ |
+
+Generate Code
+
+ |
+
+Save Database
+
+ |
+
+Students Receive Assignment
+
+ |
+
+Due Date Passed
+
+ |
+
+Auto Close
