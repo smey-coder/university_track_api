@@ -9,59 +9,86 @@ class StudentClass extends Model
 {
     use HasFactory;
 
+
     protected $table = 'classes';
 
-    // ================= FILLABLE =================
+
     protected $fillable = [
+
         'academic_year_id',
-        'semester_id',
         'department_id',
         'class_name',
         'room',
         'max_students',
         'status',
+
     ];
 
-    // ================= RELATIONS =================
+
+
+    // Academic Year
 
     public function academicYear()
     {
-        return $this->belongsTo(AcademicYear::class);
+        return $this->belongsTo(
+            AcademicYear::class,
+            'academic_year_id'
+        );
     }
 
-    public function semester()
-    {
-        return $this->belongsTo(Semester::class);
-    }
+
+
+    // Department
 
     public function department()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(
+            Department::class,
+            'department_id'
+        );
     }
+
+    // Students
 
     public function students()
     {
-        return $this->hasMany(Student::class, 'class_id');
+        return $this->hasMany(
+            Student::class,
+            'class_id'
+        );
     }
+    // Subject Schedules
 
     public function schedules()
     {
-        return $this->hasMany(SubjectSchedule::class, 'class_id');
+        return $this->hasMany(
+            SubjectSchedule::class,
+            'class_id'
+        );
     }
+    // Class Manager
 
-    public function classManager()
+    public function classManagers()
     {
-        return $this->hasOne(ClassManager::class, 'class_id');
+        return $this->hasMany(
+            ClassManager::class,
+            'class_id'
+        );
     }
-
-    // ================= API HELPER (OPTIONAL) =================
-
+    // Multiple Semester
+    public function classSemesters()
+    {
+        return $this->hasMany(
+            ClassSemester::class,
+            'class_id'
+        );
+    }
     protected $appends = [
         'student_count'
     ];
-
     public function getStudentCountAttribute()
     {
         return $this->students()->count();
     }
+
 }

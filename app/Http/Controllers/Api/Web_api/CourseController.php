@@ -174,4 +174,37 @@ class CourseController extends Controller
             'message' => 'Course deleted successfully.',
         ]);
     }
+    /**
+ * Course Dropdown API
+ */
+public function dropdown()
+{
+    try {
+
+        $courses = Course::select(
+                'id',
+                'course_code',
+                'course_name',
+                'credits'
+            )
+            ->where('status', 'Active')
+            ->orderBy('course_name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Courses loaded successfully.',
+            'data' => $courses
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to load courses.',
+            'error' => $e->getMessage()
+        ], 500);
+
+    }
+}
 }

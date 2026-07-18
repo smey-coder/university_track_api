@@ -20,13 +20,13 @@ class ClassManager extends Model
         'assigned_date' => 'date',
     ];
 
-    public function StudentClass()
+    public function studentClass()
     {
         return $this->belongsTo(StudentClass::class, 'class_id');
     }
 
     public function student()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Student::class, 'student_id');
     }
 }

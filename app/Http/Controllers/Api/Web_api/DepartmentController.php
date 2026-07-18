@@ -264,4 +264,5 @@ class DepartmentController extends Controller
             ], 500);
         }
     }
+    
 }

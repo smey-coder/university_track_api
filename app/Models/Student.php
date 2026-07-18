@@ -65,9 +65,21 @@ class Student extends Model
     }
     public function semester()
     {
+        return $this->belongsTo(Semester::class,'semester_id');
+    }
+    public function schedules()
+    {
+        return $this->hasMany(SubjectSchedule::class,'class_id');
+    }
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+    public function studentClass()
+    {
         return $this->belongsTo(
-            Semester::class,
-            'semester_id'
+            StudentClass::class,
+            'class_id'
         );
     }
 }

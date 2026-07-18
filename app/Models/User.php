@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Model;
 
 class User extends Authenticatable
 {
@@ -57,6 +58,14 @@ class User extends Authenticatable
     public function student()
     {
         return $this->hasOne(Student::class, 'user_id', 'id');
+    }
+
+    /**
+     * Teacher Profile
+     */
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class, 'user_id', 'id');
     }
 
 }

@@ -33,4 +33,18 @@ class AcademicYear extends Model
     {
         return $this->hasMany(StudentClass::class, 'academic_year_id');
     }
+    public function subjectSchedules()
+    {
+        return $this->hasMany(
+            SubjectSchedule::class,
+            'academic_year_id'
+        );
+    }
+    public function classSemesters()
+{
+    return $this->hasMany(
+        ClassSemester::class,
+        'academic_year_id'
+    );
+}
 }

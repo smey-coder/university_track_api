@@ -13,6 +13,7 @@ class SubjectSchedule extends Model
         'course_id',
         'class_id',
         'semester_id',
+        'academic_year_id',
         'teacher_id',
         'day_of_week',
         'start_time',
@@ -59,6 +60,11 @@ class SubjectSchedule extends Model
     {
         return $this->hasMany(Attendance::class, 'subject_schedule_id');
     }
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+    }
+    
 
     /*
     |--------------------------------------------------------------------------

@@ -38,4 +38,12 @@ class Semester extends Model
     {
         return $this->hasMany(SubjectSchedule::class);
     }
+    public function classSemesters()
+{
+    return $this->hasMany(
+        ClassSemester::class,
+        'semester_id'
+    );
 }
+}
+

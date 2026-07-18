@@ -8,6 +8,10 @@ use App\Models\Student;
 use App\Models\StudentClass; // Change to Class if your model file is named Class.php
 use App\Models\Department;
 use App\Models\User;
+use App\Models\Course;
+use App\Models\Teacher;
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 use Exception;
 
 class DashboardController extends Controller
@@ -25,8 +29,13 @@ class DashboardController extends Controller
                 'active_students'     => Student::where('status', 'Active')->count(),
                 'suspended_students'  => Student::where('status', 'Suspended')->count(),
                 'total_classes'       => StudentClass::count(),
+                'total_courses'       => Course::count(),
                 'total_departments'   => Department::count(),
                 'total_system_users'  => User::count(),
+                'total_teachers'      => Teacher::count(),
+                'total_assignments'   => Assignment::count(),
+                'total_assignment_submissions' => AssignmentSubmission::count(),
+
             ];
 
             // 2. Handle Search Queries & Filters

@@ -58,8 +58,6 @@ Teacher can:
 - Cannot edit another teacher's assignment
 
 Flow:
-
-
 Teacher Login
 |
 |
