@@ -82,4 +82,43 @@ class Student extends Model
             'class_id'
         );
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Assignment Groups
+    |--------------------------------------------------------------------------
+    */
+
+    public function assignmentGroups()
+    {
+        return $this->hasMany(
+            AssignmentGroup::class,
+            'leader_student_id'
+        );
+    }
+
+    public function assignmentGroupMembers()
+    {
+        return $this->hasMany(
+            AssignmentGroupMember::class,
+            'student_id'
+        );
+    }
+    public function gradebooks()
+    {
+        return $this->hasMany(
+            Gradebook::class
+        );
+    }
+    public function transcripts()
+    {
+        return $this->hasMany(
+            Transcript::class
+        );
+    }
+    public function graduation()
+    {
+        return $this->hasOne(
+            Graduation::class
+        );
+    }
 }

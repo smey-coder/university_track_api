@@ -30,4 +30,26 @@ class Course extends Model
     {
         return $this->hasMany(SubjectSchedule::class);
     }
+    public function gradeCategories()
+    {
+        return $this->hasMany(
+            GradeCategory::class
+        );
+    }
+
+    // ================= RELATION: Assignments =================
+
+    public function assignments()
+    {
+        return $this->hasMany(
+            Assignment::class,
+            'course_id'
+        );
+    }
+    public function gradebooks()
+    {
+        return $this->hasMany(
+            Gradebook::class
+        );
+    }
 }

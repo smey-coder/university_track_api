@@ -14,50 +14,354 @@ use Illuminate\Support\Facades\Storage;
 
 class AssignmentSubmissionController extends Controller
 {
-
-
-    public function grade(Request $request, $id)
+    public function dashboard()
     {
         try {
 
             $user = auth()->user();
 
+            $teacher = Teacher::where(
+                'user_id',
+                $user->id
+            )->first();
 
-            // ==========================
-            // FIND SUBMISSION
-            // ==========================
-
-            $submission = AssignmentSubmission::with([
-                'assignment.course',
-                'assignment.teacher',
-                'student'
-            ])
-            ->find($id);
-
-
-
-            if(!$submission){
+            if (!$teacher) {
 
                 return response()->json([
-
                     'success'=>false,
-
-                    'message'=>'Submission not found'
-
+                    'message'=>'Teacher not found.'
                 ],404);
 
             }
 
+            $assignments = Assignment::where(
+                'teacher_id',
+                $teacher->id
+            )->pluck('id');
+
+            $totalAssignments = $assignments->count();
+
+            $totalSubmissions = AssignmentSubmission::whereIn(
+                'assignment_id',
+                $assignments
+            )->count();
+
+            $graded = AssignmentSubmission::whereIn(
+                'assignment_id',
+                $assignments
+            )
+            ->where(
+                'status',
+                'Graded'
+            )
+            ->count();
+
+            $pending = AssignmentSubmission::whereIn(
+                'assignment_id',
+                $assignments
+            )
+            ->whereNotIn(
+                'status',
+                ['Graded']
+            )
+            ->count();
+
+            $late = AssignmentSubmission::whereIn(
+                'assignment_id',
+                $assignments
+            )
+            ->where(
+                'status',
+                'Late'
+            )
+            ->count();
+
+            return response()->json([
+
+                'success'=>true,
+
+                'data'=>[
+
+                    'total_assignments'=>$totalAssignments,
+
+                    'total_submissions'=>$totalSubmissions,
+
+                    'graded'=>$graded,
+
+                    'pending'=>$pending,
+
+                    'late'=>$late
+
+                ]
+
+            ]);
+
+        }catch(\Exception $e){
+
+            return response()->json([
+
+                'success'=>false,
+
+                'message'=>$e->getMessage()
+
+            ],500);
+
+        }
+    }
+    public function grade(Request $request, $id)
+    {
+        try {
+            $user = auth()->user();
+
+            // ==========================================
+            // Only Admin or Teacher
+            // ==========================================
+
+            if (
+                !$user->hasRole('Admin') &&
+                !$user->hasRole('Teacher')
+            ) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized.'
+                ], 403);
+
+            }
+
+            // ==========================================
+            // Find Submission
+            // ==========================================
+
+            $submission = AssignmentSubmission::with([
+
+                'assignment.course',
+                'assignment.teacher',
+
+                'student',
+
+                'group',
+                'group.leader',
+                'group.members.student',
+
+                'submitter',
+
+                'grader'
+
+            ])->find($id);
+
+            if (!$submission) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Submission not found.'
+                ], 404);
+
+            }
+
+            // ==========================================
+            // Assignment must still exist
+            // ==========================================
+
+            if (!$submission->assignment) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Assignment not found.'
+                ], 404);
+
+            }
+
+            // ==========================================
+            // Teacher Permission
+            // ==========================================
+
+            $teacher = null;
+
+            if ($user->hasRole('Teacher')) {
+
+                $teacher = Teacher::where(
+                    'user_id',
+                    $user->id
+                )->first();
+
+                if (!$teacher) {
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Teacher not found.'
+                    ], 404);
+
+                }
+
+                if (
+                    $submission->assignment->teacher_id !=
+                    $teacher->id
+                ) {
+
+                    return response()->json([
+                        'success' => false,
+                        'message' =>
+                        'You can only grade your own assignments.'
+                    ], 403);
+
+                }
+
+            }
+
+            // ==========================================
+            // Already Graded?
+            // ==========================================
+
+            if ($submission->status == 'Graded') {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This submission has already been graded.'
+                ], 422);
+
+            }
+
+            // ==========================================
+            // Validation
+            // ==========================================
+
+            $request->validate([
+
+                'score' => 'required|numeric|min:0|max:100',
+
+                'feedback' => 'nullable|string|max:2000'
+
+            ]);
+
+            // ==========================================
+            // Ready For Update
+            // =========================================='
+                    // ==========================================
+            // Update Grade
+            // ==========================================
+
+            $submission->update([
+
+                'score'      => $request->score,
+
+                'feedback'   => $request->feedback,
+
+                'status'     => 'Graded',
+
+                // Save teacher ID if graded by teacher
+                'graded_by'  => $teacher ? $teacher->id : null,
+
+                'graded_at'  => now(),
+
+            ]);
+
+            // ==========================================
+            // Reload Relationships
+            // ==========================================
+
+            $submission = $submission->fresh()->load([
+
+                'assignment.course',
+
+                'assignment.teacher',
+
+                'student',
+
+                'group',
+
+                'group.leader',
+
+                'group.members.student',
+
+                'submitter',
+
+                'grader'
+
+            ]);
+
+            // ==========================================
+            // Success Response
+            // ==========================================
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' => 'Submission graded successfully.',
+
+                'data' => $submission
+
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'message' => 'Validation failed.',
+
+                'errors' => $e->errors()
+
+            ], 422);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'message' => $e->getMessage()
+
+            ], 500);
+
+        }
+
+    }
+    /**
+     * Display submissions
+     */
+    public function index()
+    {
+
+        try {
+            $user = auth()->user();
+
+            $query = AssignmentSubmission::with([
+
+                'assignment.course',
+                'assignment.teacher',
+
+                'student',
+
+                'group',
+                'group.leader',
+                'group.members.student',
+
+                'submitter'
+
+            ]);
 
 
+            // ==================================
+            // ADMIN
+            // ==================================
+
+            if($user->hasRole('Admin')){
 
 
-            // ==========================
-            // CHECK ROLE
-            // ==========================
+                $query->latest();
 
 
-            if($user->hasRole('Teacher')){
+            }
+
+
+            // ==================================
+            // TEACHER
+            // ==================================
+
+            elseif($user->hasRole('Teacher')){
 
 
                 $teacher = Teacher::where(
@@ -81,236 +385,35 @@ class AssignmentSubmissionController extends Controller
 
 
 
-
-
-                // Teacher can grade only own assignment
-
-                if(
-                    $submission->assignment->teacher_id 
-                    != 
-                    $teacher->id
-                ){
-
-                    return response()->json([
-
-                        'success'=>false,
-
-                        'message'=>
-                        'You cannot grade this submission'
-
-                    ],403);
-
-                }
-
-
-            }
-
-
-
-
-
-
-            // ==========================
-            // VALIDATION
-            // ==========================
-
-            $request->validate([
-
-                'score'=>'required|numeric|min:0|max:100',
-
-                'feedback'=>'nullable|string'
-
-            ]);
-
-
-
-
-
-
-
-            // ==========================
-            // UPDATE GRADE
-            // ==========================
-
-
-            $submission->update([
-
-
-                'score'=>$request->score,
-
-
-                'feedback'=>$request->feedback,
-
-
-                'status'=>'Graded'
-
-
-            ]);
-
-
-
-
-
-
-
-            return response()->json([
-
-
-                'success'=>true,
-
-
-                'message'=>
-                'Submission graded successfully',
-
-
-
-                'data'=>
-                $submission->fresh()->load([
-
-                    'assignment.course',
-
-                    'assignment.teacher',
-
-                    'student'
-
-                ])
-
-
-            ]);
-
-
-
-
-        }catch(\Exception $e){
-
-
-            return response()->json([
-
-                'success'=>false,
-
-                'message'=>$e->getMessage()
-
-            ],500);
-
-
-        }
-
-    }
-    /**
-     * Display submissions
-     */
-    public function index()
-    {
-
-        try {
-
-
-            $user = auth()->user();
-
-
-            $query = AssignmentSubmission::with([
-
-                'assignment.course',
-
-                'assignment.teacher',
-
-                'student'
-
-            ]);
-
-
-
-
-
-            // ==========================
-            // ADMIN
-            // ==========================
-
-            if($user->hasRole('Admin')){
-
-
-                $query->latest();
-
-
-            }
-
-
-
-
-
-            // ==========================
-            // TEACHER
-            // ==========================
-
-            elseif($user->hasRole('Teacher')){
-
-
-                $teacher =
-                Teacher::where(
-                    'user_id',
-                    $user->id
-                )->first();
-
-
-
-                if(!$teacher){
-
-                    return response()->json([
-
-                        'success'=>false,
-
-                        'message'=>'Teacher not found'
-
-                    ],404);
-
-                }
-
-
-
+                // Only own assignments
 
                 $query->whereHas(
-
                     'assignment',
-
                     function($q) use($teacher){
 
-
                         $q->where(
-
                             'teacher_id',
-
                             $teacher->id
-
                         );
 
-
                     }
-
                 );
 
 
             }
 
 
-
-
-
-            // ==========================
+            // ==================================
             // STUDENT
-            // ==========================
+            // ==================================
 
-            else{
+            elseif($user->hasRole('Student')){
 
 
-                $student =
-                Student::where(
-
+                $student = Student::where(
                     'user_id',
-
                     $user->id
-
                 )->first();
-
 
 
 
@@ -328,60 +431,81 @@ class AssignmentSubmissionController extends Controller
 
 
 
+                $query->where(function($q) use($student){
 
 
-                $query->where(
+                    // Individual submission
 
-                    'student_id',
+                    $q->where(
+                        'student_id',
+                        $student->id
+                    )
 
-                    $student->id
+                    // Group submission
 
-                );
+                    ->orWhereHas(
+                        'group.members',
+                        function($member) use($student){
+
+                            $member->where(
+                                'student_id',
+                                $student->id
+                            );
+
+                        }
+                    );
+
+
+                });
 
 
             }
 
 
 
+            // Search
 
-            $submissions =
-            $query->paginate(10);
+            if($request->search){
+
+                $query->whereHas(
+                    'assignment',
+                    function($q) use($request){
+
+                        $q->where(
+                            'title',
+                            'like',
+                            "%{$request->search}%"
+                        );
+
+                    }
+                );
+
+            }
 
 
+
+            $submissions = $query
+                ->latest()
+                ->paginate(10);
 
 
 
             return response()->json([
 
-
                 'success'=>true,
 
-
-                'data'=>
-                $submissions->items(),
-
+                'data'=>$submissions->items(),
 
 
                 'pagination'=>[
 
+                    'current_page'=>$submissions->currentPage(),
 
-                    'current_page'=>
-                    $submissions->currentPage(),
+                    'last_page'=>$submissions->lastPage(),
 
-
-
-                    'last_page'=>
-                    $submissions->lastPage(),
-
-
-
-                    'total'=>
-                    $submissions->total()
-
+                    'total'=>$submissions->total()
 
                 ]
-
-
 
             ]);
 
@@ -390,23 +514,16 @@ class AssignmentSubmissionController extends Controller
         }catch(\Exception $e){
 
 
-
             return response()->json([
-
 
                 'success'=>false,
 
-
                 'message'=>$e->getMessage()
-
 
             ],500);
 
 
-
         }
-
-
     }
 
     /**
@@ -414,74 +531,35 @@ class AssignmentSubmissionController extends Controller
      */
     public function available()
     {
-
         try{
-
-
             $assignments = Assignment::with([
-
                 'course',
-
                 'teacher'
-
             ])
-
             ->where('status','Open')
-
             ->whereDate(
-
                 'due_date',
-
                 '>=',
-
                 Carbon::today()
-
             )
-
             ->get();
-
-
-
-
             return response()->json([
-
-
                 'success'=>true,
-
-
-                'data'=>$assignments
-
-
+                'data'=>$assignments,
             ]);
-
-
-
         }catch(\Exception $e){
 
-
             return response()->json([
-
                 'success'=>false,
-
                 'message'=>$e->getMessage()
 
             ],500);
-
-
         }
-
-
     }
     private function generateSubmissionCode($studentId)
     {
-
         $year = date('Y');
-
-
-        $count =
-        AssignmentSubmission::count() + 1;
-
-
+        $count = AssignmentSubmission::count() + 1;
         return "SUB-"
             .$year
             ."-"
@@ -491,7 +569,6 @@ class AssignmentSubmissionController extends Controller
                 '0',
                 STR_PAD_LEFT
             );
-
     }
 
     /**
@@ -651,49 +728,248 @@ class AssignmentSubmissionController extends Controller
      */
     public function show($id)
     {
+        try {
+            $user = auth()->user();
+            $submission = AssignmentSubmission::with([
+
+                'assignment.course',
+
+                'assignment.teacher',
+
+                'student',
+
+                'group',
+
+                'group.leader',
+
+                'group.members.student',
+
+                'submitter'
+
+            ])
+            ->find($id);
 
 
-        $submission =
-        AssignmentSubmission::with([
 
-            'assignment.course',
+            if(!$submission){
 
-            'assignment.teacher',
+                return response()->json([
 
-            'student'
+                    'success'=>false,
 
+                    'message'=>'Submission not found.'
 
-        ])
+                ],404);
 
-        ->find($id);
-
+            }
 
 
-        if(!$submission){
+
+            // ==================================
+            // ADMIN
+            // ==================================
+
+            if($user->hasRole('Admin')){
+
+
+                return response()->json([
+
+                    'success'=>true,
+
+                    'data'=>$submission
+
+                ]);
+
+            }
+
+
+
+            // ==================================
+            // TEACHER
+            // ==================================
+
+            if($user->hasRole('Teacher')){
+
+
+                $teacher = Teacher::where(
+                    'user_id',
+                    $user->id
+                )->first();
+
+
+
+                if(!$teacher){
+
+                    return response()->json([
+
+                        'success'=>false,
+
+                        'message'=>'Teacher not found.'
+
+                    ],404);
+
+                }
+
+
+
+                if(
+                    $submission->assignment->teacher_id 
+                    != 
+                    $teacher->id
+                ){
+
+                    return response()->json([
+
+                        'success'=>false,
+
+                        'message'=>'You cannot view this submission.'
+
+                    ],403);
+
+                }
+
+
+
+                return response()->json([
+
+                    'success'=>true,
+
+                    'data'=>$submission
+
+                ]);
+
+            }
+
+
+
+            // ==================================
+            // STUDENT
+            // ==================================
+
+            if($user->hasRole('Student')){
+
+
+                $student = Student::where(
+                    'user_id',
+                    $user->id
+                )->first();
+
+
+
+                if(!$student){
+
+                    return response()->json([
+
+                        'success'=>false,
+
+                        'message'=>'Student not found.'
+
+                    ],404);
+
+                }
+
+
+
+                $allowed = false;
+
+
+
+                // Individual submission
+
+                if(
+                    $submission->student_id 
+                    == 
+                    $student->id
+                ){
+
+                    $allowed = true;
+
+                }
+
+
+
+                // Group submission
+
+                if($submission->group_id){
+
+
+                    $isMember = AssignmentGroupMember::where(
+
+                        'assignment_group_id',
+
+                        $submission->group_id
+
+                    )
+                    ->where(
+
+                        'student_id',
+
+                        $student->id
+
+                    )
+                    ->exists();
+
+
+
+                    if($isMember){
+
+                        $allowed = true;
+
+                    }
+
+                }
+
+
+
+                if(!$allowed){
+
+                    return response()->json([
+
+                        'success'=>false,
+
+                        'message'=>'You cannot view this submission.'
+
+                    ],403);
+
+                }
+
+
+
+                return response()->json([
+
+                    'success'=>true,
+
+                    'data'=>$submission
+
+                ]);
+
+            }
+
 
 
             return response()->json([
 
                 'success'=>false,
 
-                'message'=>'Submission not found'
+                'message'=>'Unauthorized.'
 
-            ],404);
+            ],403);
+
+
+
+        }catch(\Exception $e){
+
+
+            return response()->json([
+
+                'success'=>false,
+
+                'message'=>$e->getMessage()
+
+            ],500);
 
 
         }
-
-        return response()->json([
-
-
-            'success'=>true,
-
-
-            'data'=>$submission
-
-
-        ]);
-
 
     }
 
@@ -704,220 +980,198 @@ class AssignmentSubmissionController extends Controller
     public function update(Request $request,$id)
     {
         try {
-                $user = auth()->user();
-                $submission = AssignmentSubmission::find($id);
 
-                if(!$submission){
-                    return response()->json([
+            $user = auth()->user();
 
-                        'success'=>false,
+            $submission = AssignmentSubmission::with([
+                'group.members'
+            ])->find($id);
 
-                        'message'=>'Submission not found'
-
-                    ],404);
-
-                }
-
-                // =========================
-                // CHECK STUDENT OWNER
-                // =========================
-
-                if($user->hasRole('Student')){
-
-
-                    $student = Student::where(
-                        'user_id',
-                        $user->id
-                    )->first();
-
-
-
-                    if(!$student || $submission->student_id != $student->id){
-
-                        return response()->json([
-
-                            'success'=>false,
-
-                            'message'=>'You cannot update this submission'
-
-                        ],403);
-
-                    }
-
-                }
-
-
-
-
-
-                // =========================
-                // CHECK GRADED
-                // =========================
-
-                if($submission->status == "Graded"){
-
-
-                    return response()->json([
-
-                        'success'=>false,
-
-                        'message'=>'Cannot update graded submission'
-
-                    ],403);
-
-
-                }
-
-
-
-
-
-
-                $request->validate([
-
-
-                    'content'=>'nullable|string',
-
-
-                    'file'=>'nullable|file|max:5120'
-
-
-                ]);
-
-
-
-
-
-
-
-                // =========================
-                // UPDATE FILE
-                // =========================
-
-                if($request->hasFile('file')){
-
-
-
-                    // Delete old file
-
-                    if(
-                        $submission->file_path &&
-                        Storage::disk('public')
-                        ->exists($submission->file_path)
-                    ){
-
-                        Storage::disk('public')
-                        ->delete(
-                            $submission->file_path
-                        );
-
-                    }
-
-
-
-
-
-
-                    // Store new file
-
-                    $submission->file_path =
-
-                    $request->file('file')
-                    ->store(
-                        'assignment_submissions',
-                        'public'
-                    );
-
-
-                }
-
-
-
-
-
-
-
-                // =========================
-                // UPDATE CONTENT
-                // =========================
-
-
-                if($request->has('content')){
-
-
-                    $submission->content =
-                    $request->content;
-
-
-                }
-
-
-
-
-
-
-
-                // Update submit time
-
-                $submission->submitted_at = now();
-
-
-
-                $submission->save();
-
-
-
-
-
-
+            if (!$submission) {
 
                 return response()->json([
-
-
-                    'success'=>true,
-
-
-                    'message'=>
-                    'Submission updated successfully',
-
-
-
-                    'data'=>
-                    $submission->load([
-
-                        'assignment.course',
-
-                        'assignment.teacher',
-
-                        'student'
-
-                    ])
-
-
-
-                ]);
-
-
-
-
-
-            }catch(\Exception $e){
-
-
-                return response()->json([
-
-
-                    'success'=>false,
-
-
-                    'message'=>$e->getMessage()
-
-
-                ],500);
-
+                    'success' => false,
+                    'message' => 'Submission not found.'
+                ], 404);
 
             }
 
+            // ==========================
+            // Only Student
+            // ==========================
+
+            if (!$user->hasRole('Student')) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only students can update submissions.'
+                ], 403);
+
+            }
+
+            $student = Student::where(
+                'user_id',
+                $user->id
+            )->first();
+
+            if (!$student) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student not found.'
+                ], 404);
+
+            }
+
+            // ==========================
+            // Cannot update after grading
+            // ==========================
+
+            if ($submission->status == 'Graded') {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This submission has already been graded.'
+                ], 403);
+
+            }
+
+            // ==========================
+            // Individual Submission
+            // ==========================
+
+            if ($submission->student_id) {
+
+                if ($submission->student_id != $student->id) {
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You cannot update this submission.'
+                    ], 403);
+
+                }
+
+            }
+
+            // ==========================
+            // Group Submission
+            // ==========================
+
+            if ($submission->group_id) {
+
+                $leader = AssignmentGroupMember::where(
+                    'assignment_group_id',
+                    $submission->group_id
+                )
+                ->where(
+                    'student_id',
+                    $student->id
+                )
+                ->where(
+                    'role',
+                    'leader'
+                )
+                ->first();
+
+                if (!$leader) {
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Only the group leader can update this submission.'
+                    ], 403);
+
+                }
+
+            }
+
+            // ==========================
+            // Validation
+            // ==========================
+
+            $request->validate([
+
+                'content' => 'nullable|string',
+
+                'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,rar,jpg,jpeg,png|max:10240'
+
+            ]);
+
+            // ==========================
+            // Replace File
+            // ==========================
+
+            if ($request->hasFile('file')) {
+
+                if (
+                    $submission->file_path &&
+                    Storage::disk('public')->exists($submission->file_path)
+                ) {
+
+                    Storage::disk('public')->delete($submission->file_path);
+
+                }
+
+                $submission->file_path = $request
+                    ->file('file')
+                    ->store('assignment_submissions', 'public');
+
+            }
+
+            // ==========================
+            // Update Content
+            // ==========================
+
+            if ($request->filled('content')) {
+
+                $submission->content = $request->content;
+
+            }
+
+            // Update submission time
+
+            $submission->submitted_at = now();
+
+            // If resubmitted after being late, keep status as Late.
+            // Otherwise keep Submitted.
+
+            if ($submission->status != 'Late') {
+
+                $submission->status = 'Submitted';
+
+            }
+
+            $submission->save();
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' => 'Submission updated successfully.',
+
+                'data' => $submission->fresh()->load([
+
+                    'assignment.course',
+                    'assignment.teacher',
+                    'student',
+                    'group',
+                    'group.members.student',
+                    'submitter'
+
+                ])
+
+            ]);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'message' => $e->getMessage()
+
+            ], 500);
+
+        }
     }
     /**
      * Delete
@@ -925,65 +1179,154 @@ class AssignmentSubmissionController extends Controller
     public function destroy($id)
     {
 
+        try {
 
-        $submission =
-        AssignmentSubmission::find($id);
+                $user = auth()->user();
 
+                $submission = AssignmentSubmission::find($id);
 
+                if (!$submission) {
 
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Submission not found.'
+                    ], 404);
 
+                }
 
-        if(!$submission){
+                // ==================================
+                // Cannot delete after grading
+                // ==================================
 
+                if ($submission->status == 'Graded') {
 
-            return response()->json([
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Graded submission cannot be deleted.'
+                    ], 403);
 
+                }
 
-                'success'=>false,
+                // ==================================
+                // ADMIN
+                // ==================================
 
+                if (!$user->hasRole('Admin')) {
 
-                'message'=>'Submission not found'
+                    // Only students can delete their own submission
+                    if (!$user->hasRole('Student')) {
 
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Unauthorized.'
+                        ], 403);
 
-            ],404);
+                    }
 
+                    $student = Student::where(
+                        'user_id',
+                        $user->id
+                    )->first();
 
-        }
+                    if (!$student) {
 
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Student not found.'
+                        ], 404);
 
+                    }
 
+                    // ==================================
+                    // Individual Submission
+                    // ==================================
 
+                    if ($submission->student_id) {
 
-        if($submission->file){
+                        if ($submission->student_id != $student->id) {
 
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'You cannot delete this submission.'
+                            ], 403);
 
-            Storage::disk('public')
+                        }
 
-            ->delete(
+                    }
 
-                $submission->file
+                    // ==================================
+                    // Group Submission
+                    // ==================================
 
-            );
+                    if ($submission->group_id) {
 
+                        $leader = AssignmentGroupMember::where(
+                            'assignment_group_id',
+                            $submission->group_id
+                        )
+                        ->where(
+                            'student_id',
+                            $student->id
+                        )
+                        ->where(
+                            'role',
+                            'leader'
+                        )
+                        ->exists();
 
-        }
-        $submission->delete();
+                        if (!$leader) {
 
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Only the group leader can delete this submission.'
+                            ], 403);
 
-        return response()->json([
+                        }
 
+                    }
 
-            'success'=>true,
+                }
 
+                // ==================================
+                // Delete Uploaded File
+                // ==================================
 
-            'message'=>
+                if (
+                    $submission->file_path &&
+                    Storage::disk('public')->exists($submission->file_path)
+                ) {
 
-            'Submission deleted successfully'
+                    Storage::disk('public')->delete(
+                        $submission->file_path
+                    );
 
+                }
 
-        ]);
+                // ==================================
+                // Delete Submission
+                // ==================================
 
+                $submission->delete();
 
+                return response()->json([
+
+                    'success' => true,
+
+                    'message' => 'Submission deleted successfully.'
+
+                ]);
+
+            } catch (\Exception $e) {
+
+                return response()->json([
+
+                    'success' => false,
+
+                    'message' => $e->getMessage()
+
+                ], 500);
+
+            }
 
     }
 

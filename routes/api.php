@@ -36,7 +36,11 @@ use App\Http\Controllers\Api\Web_api\SemesterController as WebApiSemesterControl
 use App\Http\Controllers\Api\Web_api\ClassroomController as WebApiClassroomController;
 use App\Http\Controllers\Api\Web_api\SubjectScheduleController as WebApiSubjectScheduleController;
 use App\Http\Controllers\Api\Web_api\StudentClassroomController as WebApiStudentClassroomController;
-
+use App\Http\Controllers\Api\Web_api\TeacherReportController as WebApiTeacherReportController;
+use App\Http\Controllers\Api\Web_api\AssignmentGroupController as WebApiAssignmentGroupController;
+use App\Http\Controllers\Api\Web_api\GradeCategoryController as WebApiGradeCategoryController;
+use App\Http\Controllers\Api\Web_api\GradeCalculationController as WebApiGradeCalculationController;
+use App\Http\Controllers\Api\Web_api\GradebookController as WebApiGradebookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -123,10 +127,16 @@ Route::prefix('web')->group(function () {
     Route::get('/semesters/dropdown',[WebApiSemesterController::class,'dropdown']);
     Route::get('/academic-years/dropdown',[WebApiAcademicYearController::class,'dropdown']);
 
+    //Report
+    Route::get('/teachers/report',[WebApiTeacherReportController::class,'teacherListReport']);
+
+        Route::get('/teachers/{id}/report',[WebApiTeacherReportController::class,'teacherProfileReport']);
     //Test
     // Route::apiResource('/permissions', WebApiPermissionController::class);
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () { 
+
+        
         // Route::get('/user', function (Request $request) {
         //     return $request->user();
         // });
@@ -338,6 +348,12 @@ Route::prefix('web')->group(function () {
         Route::delete('/teachers/{id}', [WebApiTeacherController::class, 'destroy'])
             ->middleware('permission:teacher.delete');
 
+        // Route::get('/teachers/report',[WebApiTeacherReportController::class,'teacherListReport']
+        // )->middleware('permission:teacher.view');
+
+        // Route::get('/teachers/{id}/report',[WebApiTeacherReportController::class,'teacherProfileReport']
+        // )->middleware('permission:teacher.view');
+
         //Dashboard
         Route::get('/dashboards',[WebApiDashboardController::class, 'index'])->middleware('permission:dashboard.view');
 
@@ -400,6 +416,7 @@ Route::prefix('web')->group(function () {
             Route::get('/show/{id}',[WebApiAssignmentController::class,'show']);
             Route::put('/update/{id}',[WebApiAssignmentController::class,'update']);
             Route::delete('/delete/{id}',[WebApiAssignmentController::class,'destroy']);
+            Route::put('/{id}/grade-category',[WebApiAssignmentController::class,'assignGradeCategory']);
         });
 
         //Assignment Submissions
@@ -411,6 +428,7 @@ Route::prefix('web')->group(function () {
             Route::get('/show/{id}', [WebApiAssignmentSubmissionController::class,'show']);
             Route::put('/{id}/grade', [WebApiAssignmentSubmissionController::class,'grade']);
             Route::delete('/delete/{id}', [WebApiAssignmentSubmissionController::class,'destroy']);
+            Route::get('/dashboard',[WebApiAssignmentSubmissionController::class, 'dashboard']);
 
         });
        Route::prefix('class-managers')->group(function () {
@@ -497,9 +515,118 @@ Route::prefix('web')->group(function () {
         Route::get('teachers/{id}/schedule',[WebApiSubjectScheduleController::class,'teacherSchedule']);
 
         Route::get('/student/classroom',[WebApiStudentClassroomController::class,'index']);
-    }); 
-    
 
+        // ===============================
+        // Assignment Groups
+        // ===============================
+
+        // List all groups
+        Route::get(
+            '/assignment-groups',
+            [WebApiAssignmentGroupController::class, 'index']
+        );
+
+        // Create group
+        Route::post(
+            '/assignment-groups',
+            [WebApiAssignmentGroupController::class, 'store']
+        );
+
+        // Group detail
+        Route::get(
+            '/assignment-groups/{id}',
+            [WebApiAssignmentGroupController::class, 'show']
+        );
+
+        // Update group
+        Route::put(
+            '/assignment-groups/{id}',
+            [WebApiAssignmentGroupController::class, 'update']
+        );
+
+        // Delete group
+        Route::delete(
+            '/assignment-groups/{id}',
+            [WebApiAssignmentGroupController::class, 'destroy']
+        );
+
+        // ===============================
+        // Group Members
+        // ===============================
+
+        // Add students into a group
+        Route::post(
+            '/assignment-groups/{id}/members',
+            [WebApiAssignmentGroupController::class, 'addMembers']
+        );
+
+        // Get students who are available to join this assignment
+        Route::get(
+            '/assignment-groups/assignments/{assignmentId}/available-students',
+            [WebApiAssignmentGroupController::class, 'availableStudents']
+        );
+
+            Route::get(
+            'grade-categories/course/{courseId}',
+            [WebApiGradeCategoryController::class,'index']
+        );
+
+        Route::post(
+            'grade-categories',
+            [WebApiGradeCategoryController::class,'store']
+        );
+
+
+        Route::put(
+            'grade-categories/{id}',
+            [WebApiGradeCategoryController::class,'update']
+        );
+
+
+        Route::delete(
+            'grade-categories/{id}',
+            [WebApiGradeCategoryController::class,'destroy']
+        );
+
+        Route::get(
+            'grade-calculation/course/{courseId}/student/{studentId}',
+            [
+                WebApiGradeCalculationController::class,
+                'studentGrade'
+            ]
+
+        );
+
+        // Teacher view course gradebook
+        Route::get(
+            'gradebooks/course/{courseId}',
+            [
+                WebApiGradebookController::class,
+                'courseGradebook'
+            ]
+        );
+
+
+        // Student grade detail
+        Route::get(
+            'gradebooks/course/{courseId}/student/{studentId}',
+            [
+                WebApiGradebookController::class,
+                'studentGrade'
+            ]
+        );
+
+
+        // Save grade
+        Route::post(
+            'gradebooks',
+            [
+                WebApiGradebookController::class,
+                'store'
+            ]
+        );
+
+    }); 
     
 });
 

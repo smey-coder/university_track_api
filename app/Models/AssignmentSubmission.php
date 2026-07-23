@@ -13,12 +13,16 @@ class AssignmentSubmission extends Model
         'submission_code',
         'assignment_id',
         'student_id',
+        'group_id',
+        'submitted_by',
         'file_path',
         'content',
         'submitted_at',
         'score',
         'feedback',
         'status',
+        'graded_by',
+        'graded_at',
     ];
 
     // ================= ASSIGNMENT =================
@@ -31,5 +35,35 @@ class AssignmentSubmission extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+    public function group()
+    {
+        return $this->belongsTo(
+            AssignmentGroup::class,
+            'group_id'
+        );
+    }
+
+    public function submittedBy()
+    {
+        return $this->belongsTo(
+            Student::class,
+            'submitted_by'
+        );
+    }
+    public function grader()
+    {
+        return $this->belongsTo(
+            Teacher::class,
+            'graded_by'
+        );
+    }
+
+    public function submitter()
+    {
+        return $this->belongsTo(
+            Student::class,
+            'submitted_by'
+        );
     }
 }

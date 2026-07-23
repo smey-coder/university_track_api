@@ -12,7 +12,11 @@ class Assignment extends Model
     protected $fillable = [
         'assignment_code',
         'course_id',
+        'class_id',
+        'semester_id',
         'teacher_id',
+        'assignment_type',
+        'submission_type',
         'title',
         'description',
         'due_date',
@@ -64,5 +68,25 @@ class Assignment extends Model
 
         });
 
+    }
+     public function groups()
+    {
+        return $this->hasMany(AssignmentGroup::class);
+    }
+    public function gradeCategory()
+    {
+        return $this->belongsTo(
+            GradeCategory::class,
+            'grade_category_id'
+        );
+    }
+    public function class()
+    {
+        return $this->belongsTo(StudentClass::class, 'class_id');
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 }
