@@ -40,8 +40,17 @@ class SubjectSchedule extends Model
     {
         return $this->belongsTo(Course::class);
     }
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class, 'schedule_id');
+    }
 
     public function class()
+    {
+        return $this->belongsTo(StudentClass::class, 'class_id');
+    }
+
+    public function studentClass()
     {
         return $this->belongsTo(StudentClass::class, 'class_id');
     }

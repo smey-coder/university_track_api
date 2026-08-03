@@ -429,9 +429,9 @@ Route::prefix('web')->group(function () {
             Route::put('/{id}/grade', [WebApiAssignmentSubmissionController::class,'grade']);
             Route::delete('/delete/{id}', [WebApiAssignmentSubmissionController::class,'destroy']);
             Route::get('/dashboard',[WebApiAssignmentSubmissionController::class, 'dashboard']);
-
+            Route::get('/assignment/{assignment_id}',[WebApiAssignmentSubmissionController::class,'byAssignment']);
         });
-       Route::prefix('class-managers')->group(function () {
+        Route::prefix('class-managers')->group(function () {
 
             // Get all class assignments
             Route::get(
@@ -558,6 +558,18 @@ Route::prefix('web')->group(function () {
         Route::post(
             '/assignment-groups/{id}/members',
             [WebApiAssignmentGroupController::class, 'addMembers']
+        );
+        // Update member
+        Route::put(
+            '/assignment-groups/members/{id}',
+            [WebApiAssignmentGroupController::class, 'updateMember']
+        );
+
+
+        // Delete member
+        Route::delete(
+            '/assignment-groups/members/{id}',
+            [WebApiAssignmentGroupController::class, 'deleteMember']
         );
 
         // Get students who are available to join this assignment

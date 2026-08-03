@@ -606,6 +606,131 @@ class AssignmentGroupController extends Controller
         }
 
     }
+    public function updateMember(Request $request,$id)
+    {
+        try {
+
+            $member = AssignmentGroupMember::find($id);
+
+
+            if(!$member){
+
+                return response()->json([
+                    'success'=>false,
+                    'message'=>'Member not found.'
+                ],404);
+
+            }
+
+
+            $request->validate([
+
+                'role'=>'required|in:leader,member',
+
+                'status'=>'required|in:active,inactive'
+
+            ]);
+
+
+
+            $member->update([
+
+                'role'=>$request->role,
+
+                'status'=>$request->status
+
+            ]);
+
+
+
+            return response()->json([
+
+                'success'=>true,
+
+                'message'=>'Member updated successfully.',
+
+                'data'=>$member->load('student')
+
+            ]);
+
+
+        }catch(\Exception $e){
+
+            return response()->json([
+
+                'success'=>false,
+
+                'message'=>$e->getMessage()
+
+            ],500);
+
+        }
+    }
+    public function deleteMember($id)
+    {
+        try {
+
+
+            $member = AssignmentGroupMember::find($id);
+
+
+            if(!$member){
+
+                return response()->json([
+
+                    'success'=>false,
+
+                    'message'=>'Member not found.'
+
+                ],404);
+
+            }
+
+
+            // Cannot delete leader
+
+            if($member->role=="leader"){
+
+                return response()->json([
+
+                    'success'=>false,
+
+                    'message'=>'Cannot remove group leader.'
+
+                ],422);
+
+            }
+
+
+
+            $member->delete();
+
+
+
+            return response()->json([
+
+                'success'=>true,
+
+                'message'=>'Member removed successfully.'
+
+            ]);
+
+
+
+        }catch(\Exception $e){
+
+
+            return response()->json([
+
+                'success'=>false,
+
+                'message'=>$e->getMessage()
+
+            ],500);
+
+
+        }
+    }
     /**
      * ============================================
      * Available Students

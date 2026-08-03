@@ -11,16 +11,27 @@ class Assignment extends Model
 
     protected $fillable = [
         'assignment_code',
-        'course_id',
+
+        'schedule_id',
+
         'class_id',
-        'semester_id',
+
+        'course_id',
+
         'teacher_id',
+
         'assignment_type',
+
         'submission_type',
+
         'title',
+
         'description',
+
         'due_date',
+
         'total_score',
+
         'status',
     ];
 
@@ -85,8 +96,18 @@ class Assignment extends Model
         return $this->belongsTo(StudentClass::class, 'class_id');
     }
 
+    public function studentClass()
+    {
+        return $this->belongsTo(StudentClass::class, 'class_id');
+    }
+
     public function semester()
     {
         return $this->belongsTo(Semester::class);
+    }
+
+    public function schedule()
+    {
+        return $this->belongsTo(SubjectSchedule::class, 'schedule_id');
     }
 }

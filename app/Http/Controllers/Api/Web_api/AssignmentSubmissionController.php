@@ -18,85 +18,135 @@ class AssignmentSubmissionController extends Controller
     {
         try {
 
+
             $user = auth()->user();
 
-            $teacher = Teacher::where(
-                'user_id',
-                $user->id
-            )->first();
 
-            if (!$teacher) {
+            $assignmentQuery = Assignment::query();
 
-                return response()->json([
-                    'success'=>false,
-                    'message'=>'Teacher not found.'
-                ],404);
+
+
+            // Teacher dashboard
+
+            if($user->hasRole('Teacher')){
+
+
+                $teacher = Teacher::where(
+                    'user_id',
+                    $user->id
+                )->first();
+
+
+
+                if(!$teacher){
+
+                    return response()->json([
+
+                        'success'=>false,
+
+                        'message'=>'Teacher profile not found.'
+
+                    ],404);
+
+                }
+
+
+
+                $assignmentQuery->where(
+                    'teacher_id',
+                    $teacher->id
+                );
 
             }
 
-            $assignments = Assignment::where(
-                'teacher_id',
-                $teacher->id
-            )->pluck('id');
 
-            $totalAssignments = $assignments->count();
 
-            $totalSubmissions = AssignmentSubmission::whereIn(
-                'assignment_id',
-                $assignments
-            )->count();
+            // Admin can see all
 
-            $graded = AssignmentSubmission::whereIn(
-                'assignment_id',
-                $assignments
-            )
-            ->where(
-                'status',
-                'Graded'
-            )
-            ->count();
+            if($user->hasRole('Admin')){
 
-            $pending = AssignmentSubmission::whereIn(
-                'assignment_id',
-                $assignments
-            )
-            ->whereNotIn(
-                'status',
-                ['Graded']
-            )
-            ->count();
 
-            $late = AssignmentSubmission::whereIn(
-                'assignment_id',
-                $assignments
-            )
-            ->where(
-                'status',
-                'Late'
-            )
-            ->count();
+                $assignmentQuery;
+
+
+            }
+
+
+
+
+
+            $assignments =
+            $assignmentQuery->pluck('id');
+
+
 
             return response()->json([
 
+
                 'success'=>true,
+
 
                 'data'=>[
 
-                    'total_assignments'=>$totalAssignments,
 
-                    'total_submissions'=>$totalSubmissions,
+                    'total_assignments'=>
+                    $assignments->count(),
 
-                    'graded'=>$graded,
 
-                    'pending'=>$pending,
 
-                    'late'=>$late
+                    'total_submissions'=>
+                    AssignmentSubmission::whereIn(
+                        'assignment_id',
+                        $assignments
+                    )->count(),
+
+
+
+                    'graded'=>
+                    AssignmentSubmission::whereIn(
+                        'assignment_id',
+                        $assignments
+                    )
+                    ->where(
+                        'status',
+                        'Graded'
+                    )
+                    ->count(),
+
+
+
+                    'pending'=>
+                    AssignmentSubmission::whereIn(
+                        'assignment_id',
+                        $assignments
+                    )
+                    ->where(
+                        'status',
+                        'Submitted'
+                    )
+                    ->count(),
+
+
+
+                    'late'=>
+                    AssignmentSubmission::whereIn(
+                        'assignment_id',
+                        $assignments
+                    )
+                    ->where(
+                        'status',
+                        'Late'
+                    )
+                    ->count()
 
                 ]
 
             ]);
 
+
+
         }catch(\Exception $e){
+
 
             return response()->json([
 
@@ -105,6 +155,7 @@ class AssignmentSubmissionController extends Controller
                 'message'=>$e->getMessage()
 
             ],500);
+
 
         }
     }
@@ -322,15 +373,17 @@ class AssignmentSubmissionController extends Controller
     /**
      * Display submissions
      */
-    public function index()
+    public function index(Request $request)
     {
-
         try {
+
             $user = auth()->user();
+
 
             $query = AssignmentSubmission::with([
 
                 'assignment.course',
+                'assignment.class',
                 'assignment.teacher',
 
                 'student',
@@ -339,29 +392,32 @@ class AssignmentSubmissionController extends Controller
                 'group.leader',
                 'group.members.student',
 
-                'submitter'
+                'submitter',
+                'grader'
 
             ]);
 
 
-            // ==================================
-            // ADMIN
-            // ==================================
+            /*
+            |--------------------------------------------------------------------------
+            | ADMIN
+            |--------------------------------------------------------------------------
+            */
 
-            if($user->hasRole('Admin')){
-
+            if ($user->hasRole('Admin')) {
 
                 $query->latest();
-
 
             }
 
 
-            // ==================================
-            // TEACHER
-            // ==================================
+            /*
+            |--------------------------------------------------------------------------
+            | TEACHER
+            |--------------------------------------------------------------------------
+            */
 
-            elseif($user->hasRole('Teacher')){
+            elseif ($user->hasRole('Teacher')) {
 
 
                 $teacher = Teacher::where(
@@ -371,7 +427,7 @@ class AssignmentSubmissionController extends Controller
 
 
 
-                if(!$teacher){
+                if (!$teacher) {
 
                     return response()->json([
 
@@ -385,10 +441,12 @@ class AssignmentSubmissionController extends Controller
 
 
 
-                // Only own assignments
+                // Teacher only see own assignment submissions
 
                 $query->whereHas(
+
                     'assignment',
+
                     function($q) use($teacher){
 
                         $q->where(
@@ -397,17 +455,21 @@ class AssignmentSubmissionController extends Controller
                         );
 
                     }
+
                 );
 
 
             }
 
 
-            // ==================================
-            // STUDENT
-            // ==================================
 
-            elseif($user->hasRole('Student')){
+            /*
+            |--------------------------------------------------------------------------
+            | STUDENT
+            |--------------------------------------------------------------------------
+            */
+
+            elseif ($user->hasRole('Student')) {
 
 
                 $student = Student::where(
@@ -417,7 +479,7 @@ class AssignmentSubmissionController extends Controller
 
 
 
-                if(!$student){
+                if (!$student) {
 
                     return response()->json([
 
@@ -434,17 +496,20 @@ class AssignmentSubmissionController extends Controller
                 $query->where(function($q) use($student){
 
 
-                    // Individual submission
+                    // Individual
 
                     $q->where(
                         'student_id',
                         $student->id
                     )
 
-                    // Group submission
+
+                    // Group
 
                     ->orWhereHas(
+
                         'group.members',
+
                         function($member) use($student){
 
                             $member->where(
@@ -453,6 +518,7 @@ class AssignmentSubmissionController extends Controller
                             );
 
                         }
+
                     );
 
 
@@ -463,97 +529,371 @@ class AssignmentSubmissionController extends Controller
 
 
 
-            // Search
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER CLASS
+            |--------------------------------------------------------------------------
+            */
 
-            if($request->search){
+            if($request->filled('class_id')){
+
 
                 $query->whereHas(
-                    'assignment',
-                    function($q) use($request){
 
-                        $q->where(
-                            'title',
-                            'like',
-                            "%{$request->search}%"
+                    'assignment',
+
+                    function($assignment) use($request){
+
+                        $assignment->where(
+
+                            'class_id',
+
+                            $request->class_id
+
                         );
 
                     }
+
                 );
+
 
             }
 
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER COURSE
+            |--------------------------------------------------------------------------
+            */
+
+            if($request->filled('course_id')){
+
+
+                $query->whereHas(
+
+                    'assignment',
+
+                    function($assignment) use($request){
+
+
+                        $assignment->where(
+
+                            'course_id',
+
+                            $request->course_id
+
+                        );
+
+
+                    }
+
+                );
+
+
+            }
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER DATE
+            |--------------------------------------------------------------------------
+            */
+
+            if($request->filled('date')){
+
+
+                $query->whereDate(
+
+                    'submitted_at',
+
+                    $request->date
+
+                );
+
+
+            }
+
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SEARCH
+            |--------------------------------------------------------------------------
+            */
+
+            if($request->filled('search')){
+
+
+                $search = $request->search;
+
+
+
+                $query->where(function($q) use($search){
+
+
+
+                    // Assignment title
+
+                    $q->whereHas(
+
+                        'assignment',
+
+                        function($assignment) use($search){
+
+
+                            $assignment->where(
+
+                                'title',
+
+                                'like',
+
+                                "%{$search}%"
+
+                            )
+
+                            // Search class
+
+                            ->orWhereHas(
+
+                                'class',
+
+                                function($class) use($search){
+
+
+                                    $class->where(
+
+                                        'class_name',
+
+                                        'like',
+
+                                        "%{$search}%"
+
+                                    );
+
+
+                                }
+
+                            )
+
+                            // Search course
+
+                            ->orWhereHas(
+
+                                'course',
+
+                                function($course) use($search){
+
+
+                                    $course->where(
+
+                                        'course_name',
+
+                                        'like',
+
+                                        "%{$search}%"
+
+                                    );
+
+
+                                }
+
+                            );
+
+
+                        }
+
+                    )
+
+
+
+                    // Search student
+
+                    ->orWhereHas(
+
+                        'student',
+
+                        function($student) use($search){
+
+
+                            $student->where(
+
+                                'first_name_english',
+
+                                'like',
+
+                                "%{$search}%"
+
+                            )
+
+                            ->orWhere(
+
+                                'last_name_english',
+
+                                'like',
+
+                                "%{$search}%"
+
+                            );
+
+
+                        }
+
+                    );
+
+
+                });
+
+
+            }
+
+
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER STATUS
+            |--------------------------------------------------------------------------
+            */
+
+            if($request->filled('status')){
+
+
+                $query->where(
+
+                    'status',
+
+                    $request->status
+
+                );
+
+
+            }
+
+
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | PAGINATION
+            |--------------------------------------------------------------------------
+            */
+
             $submissions = $query
+
                 ->latest()
-                ->paginate(10);
+
+                ->paginate(
+
+                    $request->per_page ?? 10
+
+                );
+
+
 
 
 
             return response()->json([
 
+
                 'success'=>true,
+
+
+                'message'=>'Submissions loaded successfully',
+
 
                 'data'=>$submissions->items(),
 
 
+
                 'pagination'=>[
+
 
                     'current_page'=>$submissions->currentPage(),
 
+
                     'last_page'=>$submissions->lastPage(),
+
+
+                    'per_page'=>$submissions->perPage(),
+
 
                     'total'=>$submissions->total()
 
+
                 ]
 
-            ]);
+
+            ],200);
 
 
 
-        }catch(\Exception $e){
+        } catch(\Exception $e){
+
 
 
             return response()->json([
 
+
                 'success'=>false,
 
+
                 'message'=>$e->getMessage()
+
 
             ],500);
 
 
+
         }
     }
-
     /**
      * Student available assignments
      */
     public function available()
     {
-        try{
+        try {
+
+            $user = auth()->user();
+
+            // Find logged in student
+            $student = Student::where('user_id', $user->id)->first();
+
+            if (!$student) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student not found.'
+                ], 404);
+            }
+
+            // Load assignments only for student's class
             $assignments = Assignment::with([
-                'course',
-                'teacher'
-            ])
-            ->where('status','Open')
-            ->whereDate(
-                'due_date',
-                '>=',
-                Carbon::today()
-            )
-            ->get();
+                    'course',
+                    'teacher',
+                    'class'
+                ])
+                ->where('status', 'Open')
+                ->where('class_id', $student->class_id)
+                ->whereDate('due_date', '>=', Carbon::today())
+                ->orderBy('due_date')
+                ->get();
+
             return response()->json([
-                'success'=>true,
-                'data'=>$assignments,
+                'success' => true,
+                'data' => $assignments,
             ]);
-        }catch(\Exception $e){
+
+        } catch (\Exception $e) {
 
             return response()->json([
-                'success'=>false,
-                'message'=>$e->getMessage()
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
 
-            ],500);
         }
     }
     private function generateSubmissionCode($studentId)
@@ -1329,7 +1669,56 @@ class AssignmentSubmissionController extends Controller
             }
 
     }
+    public function byAssignment($assignment_id)
+{
 
+    try {
+
+
+        $submissions =
+        AssignmentSubmission::where(
+            'assignment_id',
+            $assignment_id
+        )
+        ->with([
+
+            'student',
+
+            'assignment.course',
+
+            'assignment.teacher'
+
+        ])
+        ->latest()
+        ->get();
+
+
+
+        return response()->json([
+
+            'success'=>true,
+
+            'data'=>$submissions
+
+        ]);
+
+
+
+    } catch(\Exception $e){
+
+
+        return response()->json([
+
+            'success'=>false,
+
+            'message'=>$e->getMessage()
+
+        ],500);
+
+
+    }
+
+}
 
 
 }
