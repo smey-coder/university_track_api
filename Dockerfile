@@ -16,14 +16,15 @@ COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
     --prefer-dist \
-    --no-interaction \
-    --no-scripts
+    --no-interaction
 
 COPY . .
 
 RUN cp .env.example .env
 
 RUN php artisan key:generate
+
+RUN php artisan package:discover --ansi
 
 RUN composer dump-autoload --optimize
 
