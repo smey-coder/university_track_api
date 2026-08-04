@@ -5,7 +5,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     zip \
-    && docker-php-ext-install pdo_mysql zip
+    libicu-dev \
+    libcurl4-openssl-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo_mysql zip intl curl
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
