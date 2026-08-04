@@ -1,36 +1,57 @@
-FROM php:8.4-cli
+# ==============================================================================
+# Stage 1: Vendor Dependencies
+# ==============================================================================
+FROM composer:2 AS vendor
 
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    zip \
-    libicu-dev \
-    libcurl4-openssl-dev \
-    libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip intl curl
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www
+WORKDIR /app
 
 COPY composer.json composer.lock ./
 
 RUN composer install \
     --no-dev \
+    --no-interaction \
     --prefer-dist \
-    --no-interaction
+    --ignore-platform-reqs \
+    --no-scripts
 
-COPY . .
+# ==============================================================================
+# Stage 2: Runtime Environment
+# ==============================================================================
+FROM dunglas/frankenphp:1-php8.4-alpine
 
-RUN cp .env.example .env
+# Set environment variables
+ENV SERVER_NAME=":10000"
+ENV PORT=10000
 
-RUN php artisan key:generate
+# Install required system dependencies & PHP extensions
+RUN apk add --no-cache \
+        icu-dev \
+        libzip-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        zip \
+        intl \
+        bcmath \
+        opcache
 
-RUN php artisan package:discover --ansi
+WORKDIR /app
 
-RUN composer dump-autoload --optimize
+# Copy dependencies from builder
+COPY --from=vendor /app/vendor /app/vendor
+
+# Copy application source code
+COPY . /app
+
+# Optimize Composer Autoloader
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
+
+# Set correct permissions for Laravel runtime directories
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+USER www-data
 
 EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+CMD ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=10000"]
