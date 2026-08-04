@@ -1003,12 +1003,18 @@ class AssignmentSubmissionController extends Controller
             // Example:
             // SUB-2026-00001
             // ==========================
+            $lastSubmission = AssignmentSubmission::latest('id')->first();
+
+            $nextNumber = $lastSubmission
+                ? $lastSubmission->id + 1
+                : 1;
+
             $submissionCode =
                 'SUB-' .
                 date('Y') .
                 '-' .
                 str_pad(
-                    AssignmentSubmission::count() + 1,
+                    $nextNumber,
                     5,
                     '0',
                     STR_PAD_LEFT

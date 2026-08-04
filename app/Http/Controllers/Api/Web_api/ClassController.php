@@ -197,163 +197,84 @@ class ClassController extends Controller
         public function store(Request $request)
         {
             try {
-
+                $semesterIds = $request->input('semester_ids');
+                if (!is_array($semesterIds)) {
+                    if (is_string($semesterIds)) {
+                        $semesterIds = array_filter(array_map('trim', explode(',', $semesterIds)), fn($value) => $value !== '');
+                    } else {
+                        $semesterIds = $semesterIds === null ? [] : [$semesterIds];
+                    }
+                    $request->merge(['semester_ids' => $semesterIds]);
+                }
 
                 $request->validate([
 
 
                     'academic_year_id'=>
                     'required|exists:academic_years,id',
-
-
                     'semester_ids'=>
                     'required|array|min:1',
-
-
                     'semester_ids.*'=>
-                    'exists:semesters,id',
-
-
+                    'required|exists:semesters,id',
                     'department_id'=>
                     'required|exists:departments,id',
-
-
                     'class_name'=>
-                    'required|string|max:100|unique:student_classes,class_name',
-
-
+                    'required|string|max:100|unique:classes,class_name',
                     'room'=>
                     'nullable|string|max:50',
-
-
                     'max_students'=>
                     'required|integer|min:1',
-
-
                     'status'=>
                     'required|in:1,0',
-
-
                 ]);
-
-
-
-
                 // Create Class
-
                 $class = StudentClass::create([
-
-
                     'academic_year_id'=>
                     $request->academic_year_id,
-
-
                     'department_id'=>
                     $request->department_id,
-
-
                     'class_name'=>
                     $request->class_name,
-
-
                     'room'=>
                     $request->room,
-
-
                     'max_students'=>
                     $request->max_students,
-
-
                     'status'=>
                     $request->status,
-
-
                 ]);
-
-
-
-
-
                 // Assign semesters
-
-                foreach($request->semester_ids as $semester_id){
-
-
+                $semesterIds = $request->input('semester_ids');
+                if (!is_array($semesterIds)) {
+                    $semesterIds = [$semesterIds];
+                }
+                foreach($semesterIds as $semester_id){
                     ClassSemester::create([
-
-
                         'class_id'=>
                         $class->id,
-
-
                         'academic_year_id'=>
                         $request->academic_year_id,
-
-
                         'semester_id'=>
                         $semester_id,
-
-
                     ]);
-
                 }
-
-
-
-
-
                 return response()->json([
-
-
                     'success'=>true,
-
-
                     'message'=>'Class created successfully.',
-
-
                     'data'=>$class->load([
-
                         'department',
-
                         'academicYear',
-
                         'classSemesters.semester',
-
                         'classSemesters.academicYear'
-
                     ])
-
-
                 ],201);
-
-
-
             }catch(\Exception $e){
-
-
                 return response()->json([
-
-
                     'success'=>false,
-
-
                     'message'=>'Failed to create class.',
-
-
                     'error'=>$e->getMessage()
-
-
                 ],500);
-
-
             }
         }
-
-
-
-
-
-
         /**
          * ==========================================
          * Update class
@@ -362,70 +283,32 @@ class ClassController extends Controller
         public function update(Request $request,$id)
         {
             try {
-
-
                 $class = StudentClass::find($id);
-
-
-
                 if(!$class){
-
-
                     return response()->json([
-
                         'success'=>false,
-
                         'message'=>'Class not found.'
-
                     ],404);
 
                 }
-
-
-
-
-
                 $request->validate([
-
-
                     'academic_year_id'=>
                     'required|exists:academic_years,id',
-
-
                     'semester_ids'=>
                     'required|array|min:1',
-
-
                     'semester_ids.*'=>
                     'exists:semesters,id',
-
-
                     'department_id'=>
                     'required|exists:departments,id',
-
-
                     'class_name'=>
-                    'required|string|max:100|unique:student_classes,class_name,'.$class->id,
-
-
+                    'required|string|max:100|unique:classes,class_name,'.$class->id,
                     'room'=>
                     'nullable|string|max:50',
-
-
                     'max_students'=>
                     'required|integer|min:1',
-
-
                     'status'=>
                     'required|in:1,0',
-
-
                 ]);
-
-
-
-
-
                 // Update Class
 
                 $class->update([
@@ -475,7 +358,12 @@ class ClassController extends Controller
 
 
 
-                foreach($request->semester_ids as $semester_id){
+                $semesterIds = $request->input('semester_ids');
+                if (!is_array($semesterIds)) {
+                    $semesterIds = [$semesterIds];
+                }
+
+                foreach($semesterIds as $semester_id){
 
 
                     ClassSemester::create([

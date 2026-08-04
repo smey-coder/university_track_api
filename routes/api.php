@@ -507,31 +507,18 @@ Route::prefix('web')->group(function () {
             Route::get('/{id}/teachers', [WebApiClassroomController::class, 'teachers']);
             Route::get('/{id}/courses', [WebApiClassroomController::class, 'courses']);
             Route::get('/{id}/schedule', [WebApiClassroomController::class, 'schedule']);
-
         });
-
-        Route::apiResource('subject-schedules',WebApiSubjectScheduleController::class);
-        Route::get('classrooms/{id}/schedule',[WebApiSubjectScheduleController::class,'classroomSchedule']);
-        Route::get('teachers/{id}/schedule',[WebApiSubjectScheduleController::class,'teacherSchedule']);
-
-        Route::get('/student/classroom',[WebApiStudentClassroomController::class,'index']);
-
+            Route::apiResource('subject-schedules',WebApiSubjectScheduleController::class);
+            Route::get('classrooms/{id}/schedule',[WebApiSubjectScheduleController::class,'classroomSchedule']);
+            Route::get('teachers/{id}/schedule',[WebApiSubjectScheduleController::class,'teacherSchedule']);
+            Route::get('/student/classroom',[WebApiStudentClassroomController::class,'index']);
         // ===============================
         // Assignment Groups
         // ===============================
-
         // List all groups
-        Route::get(
-            '/assignment-groups',
-            [WebApiAssignmentGroupController::class, 'index']
-        );
-
+        Route::get('/assignment-groups',[WebApiAssignmentGroupController::class, 'index']);
         // Create group
-        Route::post(
-            '/assignment-groups',
-            [WebApiAssignmentGroupController::class, 'store']
-        );
-
+        Route::post('/assignment-groups',[WebApiAssignmentGroupController::class, 'store']);
         // Group detail
         Route::get(
             '/assignment-groups/{id}',
@@ -564,37 +551,28 @@ Route::prefix('web')->group(function () {
             '/assignment-groups/members/{id}',
             [WebApiAssignmentGroupController::class, 'updateMember']
         );
-
-
         // Delete member
         Route::delete(
             '/assignment-groups/members/{id}',
             [WebApiAssignmentGroupController::class, 'deleteMember']
         );
-
         // Get students who are available to join this assignment
         Route::get(
             '/assignment-groups/assignments/{assignmentId}/available-students',
             [WebApiAssignmentGroupController::class, 'availableStudents']
         );
-
             Route::get(
             'grade-categories/course/{courseId}',
             [WebApiGradeCategoryController::class,'index']
         );
-
         Route::post(
             'grade-categories',
             [WebApiGradeCategoryController::class,'store']
         );
-
-
         Route::put(
             'grade-categories/{id}',
             [WebApiGradeCategoryController::class,'update']
         );
-
-
         Route::delete(
             'grade-categories/{id}',
             [WebApiGradeCategoryController::class,'destroy']

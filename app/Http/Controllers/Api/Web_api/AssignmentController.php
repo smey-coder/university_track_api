@@ -883,8 +883,8 @@ class AssignmentController extends Controller
             $user = auth()->user();
             $request->validate([
                 'schedule_id' => 'required|exists:subject_schedules,id',
-                'course_id' => 'nullable|exists:courses,id',
-                'class_id' => 'nullable|exists:classes,id',
+                // 'course_id' => 'nullable|exists:courses,id',
+                // 'class_id' => 'nullable|exists:classes,id',
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'due_date' => 'required|date',
@@ -976,11 +976,6 @@ class AssignmentController extends Controller
                     ], 403);
                 }
             }
-
-
-
-
-
             /*
             |--------------------------------------------------------------------------
             | UPDATE
@@ -1041,9 +1036,7 @@ class AssignmentController extends Controller
                     'message' => 'Assignment not found.'
                 ], 404);
             }
-
             $user = auth()->user();
-
             /**
              * =====================================
              * ADMIN
