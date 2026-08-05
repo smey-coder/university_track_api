@@ -60,7 +60,7 @@ RUN chmod +x /usr/local/bin/frankenphp
 EXPOSE 10000
 
 # Override the default entrypoint to prevent docker-php-entrypoint permission block
-ENTRYPOINT ["/bin/sh", "-c"]
+ENTRYPOINT []
 
 # Run FrankenPHP server
 CMD ["frankenphp php-server --root /app/public --listen :10000"]
