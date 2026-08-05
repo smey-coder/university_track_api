@@ -628,6 +628,20 @@ Route::prefix('web')->group(function () {
         ];
     });
 });
+Route::get('/media/{path}', function ($path) {
+    // ពិនិត្យមើលថាតើ File មានក្នុង storage/app/public/ ឬអត់
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+
+    $file = Storage::disk('public')->get($path);
+    $type = Storage::disk('public')->mimeType($path);
+
+    $response = Response::make($file, 200);
+    $response->header("Content-Type", $type);
+
+    return $response;
+})->where('path', '.*');
 
 
 

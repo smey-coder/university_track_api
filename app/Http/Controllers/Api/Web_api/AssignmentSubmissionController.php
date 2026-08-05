@@ -1038,6 +1038,17 @@ class AssignmentSubmissionController extends Controller
                 'status' => $status,
 
             ]);
+            // ==========================
+            // Append URL សម្រាប់ទាញយក File (ការពារ 403 Forbidden)
+            // ==========================
+            $submissionData = $submission->load([
+                'assignment.course',
+                'assignment.teacher',
+                'student'
+            ])->toArray();
+
+            // បន្ថែម file_url ទៅក្នុង Response JSON
+            $submissionData['file_url'] = $filePath ? url('/media/' . $filePath) : null;
 
             return response()->json([
 
