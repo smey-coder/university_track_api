@@ -1034,9 +1034,7 @@ class AssignmentSubmissionController extends Controller
                 'file_path' => $filePath,
 
                 'content' => $request->content,
-
                 'submitted_at' => now(),
-
                 'status' => $status,
 
             ]);
@@ -1062,13 +1060,9 @@ class AssignmentSubmissionController extends Controller
                 'success' => false,
 
                 'message' => $e->getMessage()
-
             ], 500);
-
         }
-
     }
-
     /**
      * Show submission
      */
