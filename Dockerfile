@@ -58,8 +58,6 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
 # 3. Grant execution permissions on FrankenPHP binary for non-root execution
 RUN chmod +x /usr/local/bin/frankenphp
 
-USER www-data
-
 EXPOSE 10000
 
 CMD ["frankenphp", "php-server", "--root", "/app/public", "--listen", ":10000"]
