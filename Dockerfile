@@ -48,18 +48,18 @@ COPY . /app
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 
-# Set correct permissions for Laravel runtime directories
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
-
 # 1. Create the public storage link
 RUN php artisan storage:link || true
 
-# 2. Grant 775/ ownership permissions so www-data can access storage & public files
+# 2. Grant permissions to www-data user for runtime folders
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
-    && chmod -R 775 /app/storage /app/bootstrap/cache
+    && chmod -R 775 /app/storage /app/bootstrap/cache /app/public
+
+# 3. Grant execution permissions on FrankenPHP binary for non-root execution
+RUN chmod +x /usr/local/bin/frankenphp
 
 USER www-data
 
 EXPOSE 10000
 
-CMD frankenphp php-server --root /app/public --listen :10000
+CMD ["frankenphp", "php-server", "--root", "/app/public", "--listen", ":10000"]
