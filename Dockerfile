@@ -19,7 +19,6 @@ RUN composer install \
 # ==============================================================================
 FROM dunglas/frankenphp:1-php8.4-alpine
 
-# Set environment variables
 ENV SERVER_NAME=":10000"
 ENV PORT=10000
 ENV FRANKENPHP_CONFIG="web_root /app/public"
@@ -38,7 +37,7 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy dependencies from builder
+# Copy vendor dependencies from builder stage
 COPY --from=vendor /app/vendor /app/vendor
 
 # Copy application source code
@@ -48,16 +47,20 @@ COPY . /app
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 
-# 1. Create the public storage link
+# Create public storage symlink
 RUN php artisan storage:link || true
 
-# 2. Grant permissions to www-data user for runtime folders
+# Grant full read/write/execute permissions to application folders
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
-    && chmod -R 775 /app/storage /app/bootstrap/cache /app/public
+    && chmod -R 777 /app/storage /app/bootstrap/cache /app/public
 
-# 3. Grant execution permissions on FrankenPHP binary for non-root execution
+# Explicitly grant executable permissions to the frankenphp binary
 RUN chmod +x /usr/local/bin/frankenphp
 
 EXPOSE 10000
 
-CMD ["frankenphp", "php-server", "--root", "/app/public", "--listen", ":10000"]
+# Override the default entrypoint to prevent docker-php-entrypoint permission block
+ENTRYPOINT ["/bin/sh", "-c"]
+
+# Run FrankenPHP server
+CMD ["frankenphp php-server --root /app/public --listen :10000"]
