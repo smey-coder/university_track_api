@@ -428,6 +428,7 @@ Route::prefix('web')->group(function () {
             Route::post('/create', [WebApiAssignmentSubmissionController::class,'store']);
             Route::get('/show/{id}', [WebApiAssignmentSubmissionController::class,'show']);
             Route::put('/{id}/grade', [WebApiAssignmentSubmissionController::class,'grade']);
+            Route::put('/update/{id}', [WebApiAssignmentSubmissionController::class,'update']);
             Route::delete('/delete/{id}', [WebApiAssignmentSubmissionController::class,'destroy']);
             Route::get('/dashboard',[WebApiAssignmentSubmissionController::class, 'dashboard']);
             Route::get('/assignment/{assignment_id}',[WebApiAssignmentSubmissionController::class,'byAssignment']);
@@ -619,14 +620,14 @@ Route::prefix('web')->group(function () {
 
     }); 
     
-    Route::get('/test-file', function () {
-        $file = 'assignment_submissions/qzM8qUMmYcmIjjHnVO8aFqzA2jQjc5oHQLD71Mqr.jpg';
+    // Route::get('/test-file', function () {
+    //     $file = 'assignment_submissions/qzM8qUMmYcmIjjHnVO8aFqzA2jQjc5oHQLD71Mqr.jpg';
 
-        return [
-            'exists' => Storage::disk('public')->exists($file),
-            'url' => Storage::url($file),
-        ];
-    });
+    //     return [
+    //         'exists' => Storage::disk('public')->exists($file),
+    //         'url' => Storage::url($file),
+    //     ];
+    // });
 });
 Route::get('/media/{path}', function ($path) {
     // ពិនិត្យមើលថាតើ File មានក្នុង storage/app/public/ ឬអត់
