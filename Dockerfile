@@ -1,5 +1,5 @@
 # ==============================================================================
-# Stage 1: Vendor Dependencies
+# Stage 1: Build Dependencies
 # ==============================================================================
 FROM composer:2 AS vendor
 
@@ -15,7 +15,7 @@ RUN composer install \
     --no-scripts
 
 # ==============================================================================
-# Stage 2: Runtime Environment
+# Stage 2: Runtime Application
 # ==============================================================================
 FROM dunglas/frankenphp:1-php8.4-alpine
 
@@ -23,7 +23,7 @@ ENV SERVER_NAME=":10000"
 ENV PORT=10000
 ENV FRANKENPHP_CONFIG="web_root /app/public"
 
-# Install required system dependencies & PHP extensions
+# Install system libraries & PHP extensions
 RUN apk add --no-cache \
         icu-dev \
         libzip-dev \
@@ -37,7 +37,7 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy vendor dependencies from builder stage
+# Copy Composer dependencies
 COPY --from=vendor /app/vendor /app/vendor
 
 # Copy application source code
@@ -47,20 +47,13 @@ COPY . /app
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 
-# Create public storage symlink
-RUN php artisan storage:link || true
-
-# Grant full read/write/execute permissions to application folders
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
+# Ensure permissions and link storage safely
+RUN rm -rf /app/public/storage \
+    && php artisan storage:link \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
     && chmod -R 777 /app/storage /app/bootstrap/cache /app/public
-
-# Explicitly grant executable permissions to the frankenphp binary
-RUN chmod +x /usr/local/bin/frankenphp
 
 EXPOSE 10000
 
-# Override the default entrypoint to prevent docker-php-entrypoint permission block
-ENTRYPOINT []
-
-# Run FrankenPHP server
-CMD ["frankenphp php-server --root /app/public --listen :10000"]
+# Simple, reliable startup command
+CMD frankenphp php-server --root /app/public --listen :10000
