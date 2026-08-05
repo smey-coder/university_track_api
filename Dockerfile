@@ -1,5 +1,5 @@
 # ==============================================================================
-# Stage 1: Build Composer Dependencies
+# Stage 1: Build Dependencies
 # ==============================================================================
 FROM composer:2 AS vendor
 
@@ -15,41 +15,35 @@ RUN composer install \
     --no-scripts
 
 # ==============================================================================
-# Stage 2: Runtime Environment (Debian-based image to prevent Alpine status 126)
+# Stage 2: Runtime Environment
 # ==============================================================================
-FROM dunglas/frankenphp:1-php8.4
+FROM php:8.4-cli-alpine
 
-ENV SERVER_NAME=":10000"
 ENV PORT=10000
-ENV FRANKENPHP_CONFIG="web_root /app/public"
 
-# Install system dependencies & PHP extensions for Debian
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libicu-dev \
+# ដំឡើង dependencies និង PHP extensions ដែលចាំបាច់
+RUN apk add --no-cache \
+        icu-dev \
         libzip-dev \
-        unzip \
     && docker-php-ext-configure intl \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
         zip \
         intl \
         bcmath \
-        opcache \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+        opcache
 
 WORKDIR /app
 
-# Copy dependencies from builder
+# ចម្លង Vendor និង Source Code
 COPY --from=vendor /app/vendor /app/vendor
-
-# Copy application source code
 COPY . /app
 
 # Optimize Composer Autoloader
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 
-# Ensure permissions and link storage safely
+# បង្កើត Link Storage និងកំណត់ សិទ្ធិ (Permissions)
 RUN rm -rf /app/public/storage \
     && php artisan storage:link \
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
@@ -57,4 +51,8 @@ RUN rm -rf /app/public/storage \
 
 EXPOSE 10000
 
-CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
+# លុប Entrypoint ចាស់ដែលបង្កកំហុស 126
+ENTRYPOINT []
+
+# ដំណើរការ Laravel App តាមរយៈ PHP Artisan Serve
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
