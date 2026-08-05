@@ -51,12 +51,15 @@ RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 # Set correct permissions for Laravel runtime directories
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Create storage symlink AND ensure public/storage folder permissions are writable
-RUN php artisan storage:link || true \
-    && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public
-    
+# 1. Create the public storage link
+RUN php artisan storage:link || true
+
+# 2. Grant 775/ ownership permissions so www-data can access storage & public files
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
+
 USER www-data
 
 EXPOSE 10000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+CMD ["frankenphp", "php-server", "--root", "/app/public", "--listen", ":10000"]d
