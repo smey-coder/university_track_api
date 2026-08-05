@@ -49,11 +49,6 @@ RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 
 # Set correct permissions for Laravel runtime directories
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
-# Create storage symlink
-RUN php artisan storage:link || true
-
-# Cache config
-RUN php artisan config:cache
 
 USER www-data
 
