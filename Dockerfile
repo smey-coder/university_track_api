@@ -62,4 +62,4 @@ USER www-data
 
 EXPOSE 10000
 
-CMD ["frankenphp", "php-server", "--root", "/app/public", "--listen", ":10000"]d
+CMD ["frankenphp", "php-server", "--root", "/app/public", "--listen", ":10000"]
