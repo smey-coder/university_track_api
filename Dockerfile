@@ -22,6 +22,7 @@ FROM dunglas/frankenphp:1-php8.4-alpine
 # Set environment variables
 ENV SERVER_NAME=":10000"
 ENV PORT=10000
+ENV FRANKENPHP_CONFIG="web_root /app/public"
 
 # Install required system dependencies & PHP extensions
 RUN apk add --no-cache \
@@ -50,6 +51,10 @@ RUN composer dump-autoload --optimize --no-dev && rm /usr/bin/composer
 # Set correct permissions for Laravel runtime directories
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
+# Create storage symlink AND ensure public/storage folder permissions are writable
+RUN php artisan storage:link || true \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public
+    
 USER www-data
 
 EXPOSE 10000
