@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 //Mobile app API
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DepartmentController;
@@ -618,6 +619,14 @@ Route::prefix('web')->group(function () {
 
     }); 
     
+    Route::get('/test-file', function () {
+        $file = 'assignment_submissions/qzM8qUMmYcmIjjHnVO8aFqzA2jQjc5oHQLD71Mqr.jpg';
+
+        return [
+            'exists' => Storage::disk('public')->exists($file),
+            'url' => Storage::url($file),
+        ];
+    });
 });
 
 
