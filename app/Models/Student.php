@@ -43,9 +43,13 @@ class Student extends Model
     
     public function getPhotoUrlAttribute()
     {
-        if ($this->photo) {
-            // return asset
-            // ('storage/' . $this->photo);
+        // if ($this->photo) {
+        //     // return asset
+        //     // ('storage/' . $this->photo);
+        //     return url('/api/media/' . $this->photo);
+        // }
+        // ពិនិត្យមើលថាតើមានឈ្មោះ File ក្នុង DB និង មាន File ពិតប្រាកដក្នុង Storage ឬអត់
+        if ($this->photo && Storage::disk('public')->exists($this->photo)) {
             return url('/api/media/' . $this->photo);
         }
 
