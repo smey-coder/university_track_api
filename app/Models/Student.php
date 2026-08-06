@@ -43,28 +43,28 @@ class Student extends Model
     
     public function getPhotoUrlAttribute()
     {
-        // if ($this->photo) {
-        //     // return asset
-        //     // ('storage/' . $this->photo);
-        //     return url('/api/media/' . $this->photo);
-        // }
+        if ($this->photo) {
+            // return asset
+            // ('storage/' . $this->photo);
+            return url('/api/media/' . $this->photo);
+        }
         // ពិនិត្យមើលថាតើមានឈ្មោះ File ក្នុង DB និង មាន File ពិតប្រាកដក្នុង Storage ឬអត់
         // if ($this->photo && Storage::disk('public')->exists($this->photo)) {
         //     return url('/api/media/' . $this->photo);
         // }
 
-        // return asset('images/default-avatar.png');
-        try {
-            if (!empty($this->photo) && Storage::disk('public')->exists($this->photo)) {
-                return url('/api/media/' . $this->photo);
-            }
-        } catch (\Exception $e) {
-            // ប្រសិនបើមានបញ្ហា Storage System វានឹងរំលងមកប្រើ Fallback
-        }
+        return asset('images/default-avatar.png');
+        // try {
+        //     if (!empty($this->photo) && Storage::disk('public')->exists($this->photo)) {
+        //         return url('/api/media/' . $this->photo);
+        //     }
+        // } catch (\Exception $e) {
+        //     // ប្រសិនបើមានបញ្ហា Storage System វានឹងរំលងមកប្រើ Fallback
+        // }
 
-        // បង្កើត Avatar តាមឈ្មោះ ឬ ប្រើ Default Image
-        $name = $this->first_name_english ?? $this->last_name_english ?? 'Student';
-        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=random';
+        // // បង្កើត Avatar តាមឈ្មោះ ឬ ប្រើ Default Image
+        // $name = $this->first_name_english ?? $this->last_name_english ?? 'Student';
+        // return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=random';
     }
 
     public function submissions()
