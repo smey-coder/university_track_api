@@ -46,7 +46,7 @@ class Student extends Model
         if ($this->photo) {
             // return asset
             // ('storage/' . $this->photo);
-            return url('/media/' . $this->photo);
+            return url('/api/media/' . $this->photo);
         }
 
         return asset('images/default-avatar.png');

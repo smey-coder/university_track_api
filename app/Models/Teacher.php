@@ -58,7 +58,7 @@ class Teacher extends Model
     {
         return $this->photo
             // ? asset('storage/' . $this->photo)
-            ? url('/media/' . $this->photo)
+            ? url('/api/media/' . $this->photo)
             : asset('images/default-user.png');
     }
 
