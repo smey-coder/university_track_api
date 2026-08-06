@@ -57,7 +57,8 @@ class Teacher extends Model
     public function getPhotoUrlAttribute()
     {
         return $this->photo
-            ? asset('storage/' . $this->photo)
+            // ? asset('storage/' . $this->photo)
+            ? url('/media/' . $this->photo)
             : asset('images/default-user.png');
     }
 

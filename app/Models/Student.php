@@ -44,8 +44,9 @@ class Student extends Model
     public function getPhotoUrlAttribute()
     {
         if ($this->photo) {
-            return asset
-            ('storage/' . $this->photo);
+            // return asset
+            // ('storage/' . $this->photo);
+            return url('/media/' . $this->photo);
         }
 
         return asset('images/default-avatar.png');
@@ -121,4 +122,5 @@ class Student extends Model
             Graduation::class
         );
     }
+    
 }
