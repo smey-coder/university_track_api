@@ -53,7 +53,7 @@ class Student extends Model
         //     return url('/api/media/' . $this->photo);
         // }
 
-        return asset('images/default-avatar.png');
+        // return asset('images/default-avatar.png');
         // try {
         //     if (!empty($this->photo) && Storage::disk('public')->exists($this->photo)) {
         //         return url('/api/media/' . $this->photo);
@@ -63,8 +63,8 @@ class Student extends Model
         // }
 
         // // បង្កើត Avatar តាមឈ្មោះ ឬ ប្រើ Default Image
-        // $name = $this->first_name_english ?? $this->last_name_english ?? 'Student';
-        // return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=random';
+        $name = $this->first_name_english ?? $this->last_name_english ?? 'Student';
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=random';
     }
 
     public function submissions()
